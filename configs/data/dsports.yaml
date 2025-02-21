@@ -1,0 +1,5 @@
+_target_: src.backend.torch_local.datamodules.sports_dm.LitSportsDataModule
+data_dir: ${paths.data_dir}/processed/sports/
+batch_size: 64
+num_workers: 12
+pin_memory: false

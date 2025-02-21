@@ -1,0 +1,29 @@
+# @package _global_
+
+defaults:
+  - override /data: dvegfruits
+  - override /model: mvegfruits
+  - override /callbacks: rich_progress_bar
+  - override /logger: tensorboard # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - override /trainer: default
+
+
+ckpt_path:  ${paths.root_dir}/checkpoints/ckpts/vegfruits.ckpt
+
+
+data:
+  batch_size: 32
+  num_workers: 10
+  pin_memory: False
+
+
+
+tags: 'vegfruits'
+
+seed: 42
+train: False
+test: True
+
+trainer:
+  min_epochs: 1
+  max_epochs: 3

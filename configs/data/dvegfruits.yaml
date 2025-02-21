@@ -1,0 +1,5 @@
+_target_: src.backend.torch_local.datamodules.vegfruits_dm.LitVegFruitsDataModule
+data_dir: ${paths.data_dir}/processed/vegfruits/
+batch_size: 32
+num_workers: 12
+pin_memory: false
