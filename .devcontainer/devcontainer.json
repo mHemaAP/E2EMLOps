@@ -9,12 +9,28 @@
 	// 	"ghcr.io/va-h/devcontainers-features/uv:1": {}
 	// },
 	"name": "ProjectMLOps",
-	"image": "ghcr.io/astral-sh/uv:debian",
+	// "image": "ghcr.io/astral-sh/uv:debian",
+	"build": {
+		// Sets the run context to one level up instead of the .devcontainer folder.
+		"context": "..",
+		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
+		"dockerfile": "../Dockerfile.devcontainer"
+	},
 	"forwardPorts": [
-		6006,
-		8080,
-		7860
-	]
+		6006,  // tensorboard
+		8080,  // fastapi
+		7860,  // gradio
+		8000,  // dev
+		
+		// torchserve
+		8443,  // infer
+		8444,  // management
+		8445,  // metrics
+		7070,  // gRPC inference
+		7071   // gRPC management 
+	],
+	"postCreateCommand": "bash ./shscripts/post_container.sh",
+	"onCreateCommand" : "[ -f pyproject.toml ] && uv sync --group develop --group visuals --group testing --group prod --extra cpu"
 	// ,"extensions": [
 	// 	"GitHub.github-vscode-theme",
 	// 	"ms-toolsai.jupyter",
@@ -24,9 +40,3 @@
 }
 
 
-// // "build": {
-// // 	// Sets the run context to one level up instead of the .devcontainer folder.
-// // 	"context": "..",
-// // 	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-// // 	"dockerfile": "../Dockerfile.cpu"
-// // },
