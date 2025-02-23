@@ -36,14 +36,17 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+          cache-dependency-glob: "uv.lock"
     
       - name: "setting up python3"
         uses: actions/setup-python@v5
-        # with:
-        #   python-version-file: ".python-version"
+        with:
+          python-version-file: "pyproject.toml"
 
       - name: "install dependencies 📝"
         run: uv sync --group visuals --group prod --extra cpu   # --env-file .env
+        env:
+          UV_SYSTEM_PYTHON: 1
 
       - name: "uv activate"
         run: source .venv/bin/activate
