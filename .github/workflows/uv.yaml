@@ -45,6 +45,16 @@ jobs:
       - name: "install dependencies 📝"
         run: uv sync --group visuals --group prod --extra cpu   # --env-file .env
 
+      - name: "uv activate"
+        run: source .venv/bin/activate
+
+      - name: "python version"
+        run: |
+          echo "which python"
+          echo "uv version"
+          python -c 'import torch; print(torch.__version__) '
+
+
       - name: "download s3🪣"
         run: echo "download dataset"
 
