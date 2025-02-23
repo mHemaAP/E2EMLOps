@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = [{name = "Muthu Kamalan", email = "muthukamalan98@gmail.com"}]
 license = {text = "MIT"}
 description = "MLOps End to End Projects"
-requires-python = ">=3.12.0"
+requires-python = "==3.12.0"
 dependencies = [
 ]
 keywords = [
