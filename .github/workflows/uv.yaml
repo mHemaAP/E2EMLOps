@@ -56,7 +56,9 @@ jobs:
 
 
       - name: "download s3🪣"
-        run: echo "download dataset"
+        run: |
+          echo "download dataset"
+          aws s3 ls
 
       - name: "hparams🐒🦧 model"
         run: echo "download dataset"
