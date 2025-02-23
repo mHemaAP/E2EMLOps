@@ -2,6 +2,7 @@ name: install-uv
 
 on: 
   workflow_dispatch:
+  push:
   
 
 jobs:
@@ -41,8 +42,8 @@ jobs:
       - name: "setting up python3"
         uses: actions/setup-python@v5
         with:
-          python-version-file: "pyproject.toml"
-
+          python-version: '3.12.0' 
+        
       - name: "install dependencies 📝"
         run: uv sync --group visuals --group prod --extra cpu   # --env-file .env
         env:
