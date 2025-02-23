@@ -1,7 +1,8 @@
-tree -L 4 . --dirsfirst 
 .
 ├── assets
 │   ├── README.md
+│   ├── sports_class_distribution.png
+│   ├── sports_image_grid.png
 │   ├── sports_test_confusion_matrix.png
 │   ├── sports_val_confusion_matrix.png
 │   ├── vegfruits_class_distribution.png
@@ -14,6 +15,15 @@ tree -L 4 . --dirsfirst
 │   ├── classnames
 │   │   ├── sports.json
 │   │   └── vegfruits.json
+│   ├── model_stores
+│   │   ├── sports
+│   │   │   ├── config.properties
+│   │   │   ├── index_to_name.json
+│   │   │   └── msports.mar
+│   │   └── vegfruits
+│   │       ├── config.properties
+│   │       ├── index_to_name.json
+│   │       └── mvegfruits.mar
 │   ├── onnxs
 │   │   ├── sports.onnx
 │   │   └── vegfruits.onnx
@@ -90,30 +100,32 @@ tree -L 4 . --dirsfirst
 │   └── raw
 │       ├── fruit-and-vegetable-image-recognition.zip
 │       └── sports_data.zip
+├── DeployLambda
+│   ├── app_lambda.py
+│   ├── aws-req.txt
+│   ├── cdk.json
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── pyproject.toml
+│   └── README.md
 ├── Dockerspool
 │   ├── Dockerfile.fastapi.sports
 │   ├── Dockerfile.fastapi.vegfruits
-│   ├── Dockerfile.gradio.sports
-│   ├── Dockerfile.gradio.vegfruits
 │   └── README.md
 ├── K8SDeploy
-│   ├── AWSLambdas
-│   │   └── app.py
 │   ├── ECRs
 │   ├── Helm
 │   └── README.md
 ├── lightning_logs
 ├── logs
-├── model_stores
-│   ├── mar_sports
-│   └── mar_vegfruits
 ├── multirun
 ├── notebooks
 │   ├── sportsmodel.ipynb
 │   └── vegfruitsmodel.ipynb
 ├── outputs
 ├── shscripts
-│   └── download_zips.sh
+│   ├── download_zips.sh
+│   └── post_container.sh
 ├── src
 │   ├── backend
 │   │   ├── fastapi_app
@@ -126,11 +138,13 @@ tree -L 4 . --dirsfirst
 │   │   │   ├── eval.py
 │   │   │   └── train.py
 │   │   └── torchserve_app
-│   │       └── sports_handler.py
+│   │       ├── metrics.yaml
+│   │       ├── README.md
+│   │       ├── sports_handler.py
+│   │       ├── sports_swagger.json
+│   │       ├── vegfruits_handler.py
+│   │       └── vegfruits_swagger.json
 │   ├── frontend
-│   │   ├── gradios
-│   │   │   ├── space_sports.py
-│   │   │   └── space_vegfruits.py
 │   │   └── nextjs
 │   └── middleware
 │       └── fastapi_app
@@ -139,8 +153,7 @@ tree -L 4 . --dirsfirst
 │   ├── loadtest
 │   │   └── README.md
 │   └── unittest
-├── class_distribution.png
-├── image_grid.png
+├── Dockerfile.devcontainer
 ├── LICENSE
 ├── Makefile
 ├── project_structure.txt
@@ -149,4 +162,4 @@ tree -L 4 . --dirsfirst
 ├── requirements.cpu.txt
 └── requirements.gpu.txt
 
-60 directories, 89 files
+59 directories, 104 files
