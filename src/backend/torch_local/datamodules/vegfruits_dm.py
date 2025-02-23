@@ -33,7 +33,7 @@ class LitVegFruitsDataModule(pl.LightningDataModule):
             pin_memory:bool,
             data_dir:AnyStr | None=None
         ):
-        print("calling Sports  🤾‍♂️ DataModule")
+        print("calling VegFruits 🌽🥦 DataModule")
         super().__init__()
         for _ in ['train','test','validation']:
             assert _ in os.listdir(data_dir), f"expected dirs missing <{_}>"
