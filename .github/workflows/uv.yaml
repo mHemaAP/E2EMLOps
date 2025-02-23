@@ -50,7 +50,13 @@ jobs:
           UV_SYSTEM_PYTHON: 1
 
       - name: "uv activate"
-        run: source .venv/bin/activate
+        run: |
+          source .venv/bin/activate
+          uv version 
+          which python 
+          python -V
+          python -c 'import torch; print(torch.__version__) '
+
 
       - name: "python version"
         run: |
