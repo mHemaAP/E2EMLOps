@@ -42,7 +42,7 @@ jobs:
       - name: "setting up python3"
         uses: actions/setup-python@v5
         with:
-          python-version: 'pyproject.toml' 
+          python-version: '3.12.0'   # mentioned in pyproject.toml
         
       - name: "install dependencies 📝"
         run: uv sync --group visuals --group prod --extra cpu   # --env-file .env
