@@ -10,7 +10,7 @@ from scipy.special import softmax
 from ts.torch_handler.base_handler import BaseHandler
 
 
-class SportsHandler(BaseHandler):
+class VegFruitsHandler(BaseHandler):
     def __init__(self):
         super(__class__, self).__init__()
         self.model = None
@@ -31,7 +31,7 @@ class SportsHandler(BaseHandler):
         self.manifest = ctx.manifest
         properties = ctx.system_properties
         model_dir = properties.get("model_dir")
-        model_file = "sports.onnx"
+        model_file = "vegfruits.onnx"
         model_path = os.path.join(model_dir, model_file)
 
         self.transform = torchvision.transforms.Compose([
@@ -50,6 +50,7 @@ class SportsHandler(BaseHandler):
         with open(mapping_file_path) as mapping_file:
             self.mapping = list(json.load(mapping_file).values())
         # by default it'll look for `index_to_name.json`
+        print(f"mapping ::{self.mapping=}")
 
     def preprocess_one_image(self,req) -> np.ndarray:
         # get image from the request
@@ -58,6 +59,7 @@ class SportsHandler(BaseHandler):
             image = req.get("body")
         # create a stream from the encoded image
 
+        print(f"received request of type:: {type(image)}")
         image = Image.open(io.BytesIO(image)).convert('RGB').resize(self.input_size) # isinstance(image, (bytes, bytearray))
 
         # preprocess
@@ -78,6 +80,7 @@ class SportsHandler(BaseHandler):
         """
         images  = [ self.preprocess_one_image(req) for req in requests ]
         images  = np.concat(images,axis=0)
+        print(f"received images and preprocessed:: shape({ images.shape})")
         return images
 
     def inference(self, data):
@@ -101,7 +104,6 @@ class SportsHandler(BaseHandler):
             Implement your postprocessing logic here and Convert model output to the desired format
         '''
         probabilities = softmax(inference_outputs,axis=1)
-
         response:list = []
         for cls0,prob in zip(
                                 np.argmax(probabilities,axis=1),
