@@ -20,6 +20,11 @@ echo "*********** FruitsVeg Dataset ************"
 curl -L -o ./data/raw/fruit-and-vegetable-image-recognition.zip https://www.kaggle.com/api/v1/datasets/download/kritikseth/fruit-and-vegetable-image-recognition
 echo "******************************************"
 
+echo "************ Making Dirs *****************"
+mkdir -p ./data/processed/sports/
+mkdir -p ./data/processed/vegfruits/
+echo "******************************************"
+
 
 echo "*********** Unzipping 📁 *****************"
 unzip ./data/raw/sports-classiunfication.zip -d ./data/processed/sports/
