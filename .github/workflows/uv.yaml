@@ -45,7 +45,7 @@ jobs:
         #   python-version: '3.12.0'   # mentioned in pyproject.toml
         
       - name: "install dependencies 📝"
-        run: uv sync --group visuals --group prod --extra cpu   # --env-file .env
+        run: uv sync --group develop --group visuals --group testing --group prod --extra cu124 # uv sync --group visuals --group prod --extra cpu   # --env-file .env
         env:
           UV_SYSTEM_PYTHON: 1
 
