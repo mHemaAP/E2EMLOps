@@ -1,5 +1,8 @@
 # MLProject
-
+*.ckpt
+*.pt
+*.onnx
+*.mar
 
 sports/
 vegfruits/

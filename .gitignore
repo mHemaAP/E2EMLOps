@@ -23,6 +23,7 @@
 # data/processed/sports
 # data/processed/vegfruits
 
+cdk.out/
 
 # Model Weights
 *.mar
