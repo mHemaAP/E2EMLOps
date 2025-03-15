@@ -2,6 +2,11 @@
 ```bash
 # install jdk & config JAVA_HOME
 sudo apt install --no-install-recommends -y openjdk-11-jre-headless
+
+# JAVA Installation
+sudo apt install default-jdk
+update-alternatives --config java
+JAVA_HOME="/lib/jvm/java-11-openjdk-amd64" # keep it in .bashrc
 ```
 
 # SPORTS
@@ -38,7 +43,7 @@ torchserve --stop
 torch-model-archiver --model-name mvegfruits --serialized-file checkpoints/onnxs/vegfruits.onnx --handler src/backend/torchserve_app/vegfruits_handler.py --export-path checkpoints/model_stores/vegfruits/ -f --version 0.0.1 --extra-files checkpoints/model_stores/vegfruits/index_to_name.json 
 
 # start server
-torchserve --start --model-store checkpoints/model_stores/vegfruits/ --ts-config checkpoints/model_stores/vegfruits/config.properties --enable-model-api --disable-token-auth                
+torchserve --start --model-store checkpoints/model_stores/vegfruits/ --ts-config checkpoints/model_stores/vegfruits/config.properties --enable-model-api --disable-token-auth
 
 # inference
 curl http://localhost:8080/ping
