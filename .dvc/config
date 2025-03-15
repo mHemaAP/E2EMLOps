@@ -1,0 +1,6 @@
+[core]
+    autostage = true
+    analytics = false
+    remote = mlops
+['remote "mlops"']
+    url = s3://emlo-project/data

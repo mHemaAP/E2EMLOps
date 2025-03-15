@@ -2,7 +2,7 @@ name: install-uv
 
 on: 
   workflow_dispatch:
-  push:
+  # push:
   
 
 jobs:
