@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from glob import glob
 from pathlib import Path
 
 import hydra
@@ -124,31 +125,50 @@ def main(cfg: DictConfig):
             with open(classname_file,'w') as f:
                 json.dump(datamodule.train_ds.class_to_idx,f)
 
+
+        ptfiles = glob( os.path.join( f"{cfg.paths.root_dir}","checkpoints","pths" ,f"{cfg.name}*.pt" ))
+        for ptfile in ptfiles: os.remove(ptfile)
+
         model_file_path:str = os.path.join( f"{cfg.paths.root_dir}","checkpoints","pths" ,f"{cfg.name}.pt" )
         print(model_file_path)
 
         imgs,_lbls = next(iter(datamodule.train_dataloader()) )
 
-        if torch.cuda.is_available():
+        # cuda not available: cpu.pt files
+        if not torch.cuda.is_available():
             model = model.cpu()
             imgs  = imgs.cpu()
             cpu_model_file_path:str = os.path.join( f"{cfg.paths.root_dir}","checkpoints","pths" ,f"{cfg.name}_cpu.pt" )
-            cpu_scripted_model = model.cpu().to_torchscript(method='trace',example_inputs=imgs.cpu())
+            cpu_scripted_model = model.cpu().to_torchscript(method='trace',example_inputs=imgs)
             if os.path.isfile( cpu_model_file_path ):
                 os.remove(cpu_model_file_path)
             torch.jit.save(cpu_scripted_model, cpu_model_file_path)
             print(f"torch script model saved: {cpu_model_file_path=}")
 
+        # cuda available: 
+        if torch.cuda.is_available():
             # convert model and image into cuda()
             model = model.cuda()
             imgs  = imgs.cuda()
 
-        scripted_model = model.to_torchscript(method='trace',example_inputs=imgs)
-        if os.path.isfile( model_file_path ):
-            os.remove(model_file_path)
+            scripted_model = model.to_torchscript(method='trace',example_inputs=imgs)
+            if os.path.isfile( model_file_path ):
+                os.remove(model_file_path)
 
-        torch.jit.save(scripted_model, model_file_path)
-        print(f"torch script model saved: {model_file_path=}")
+            torch.jit.save(scripted_model, model_file_path)
+            print(f"torch script model saved: {model_file_path=}")
+
+            # save file in cpu format also
+            model = model.cpu()
+            imgs  = imgs.cpu()
+            cpu_model_file_path:str = os.path.join( f"{cfg.paths.root_dir}","checkpoints","pths" ,f"{cfg.name}_cpu.pt" )
+            cpu_scripted_model = model.cpu().to_torchscript(method='trace',example_inputs=imgs)
+            if os.path.isfile( cpu_model_file_path ):
+                os.remove(cpu_model_file_path)
+            torch.jit.save(cpu_scripted_model, cpu_model_file_path)
+            print(f"torch script model saved: {cpu_model_file_path=}")
+            
+            
 
         onnx_model_file_path:str = os.path.join( f"{cfg.paths.root_dir}","checkpoints","onnxs", f"{cfg.name}.onnx" )
         print(onnx_model_file_path)
