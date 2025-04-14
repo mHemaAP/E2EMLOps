@@ -35,6 +35,8 @@ docker tag web-server:latest 306093656765.dkr.ecr.ap-south-1.amazonaws.com/a18/w
 
 docker push 306093656765.dkr.ecr.ap-south-1.amazonaws.com/a18/web-server:latest
 
+docker push 306093656765.dkr.ecr.ap-south-1.amazonaws.com/a18/ui-server:latest
+
 aws iam get-policy-version --policy-arn arn:aws:iam::306093656765:policy/S3ListTestEMLO --version-id v1
 
 
