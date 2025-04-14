@@ -4,7 +4,7 @@
 /logs
 /outputs
 /multirun
-
+*/kserve/*
 
 # data folder
 *.zip
