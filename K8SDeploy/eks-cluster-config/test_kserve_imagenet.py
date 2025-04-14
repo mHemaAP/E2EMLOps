@@ -1,7 +1,7 @@
 import requests
 import json
 # cat-classifier
-url = "http://a9b064a181f464079a66b39f0f8dc30a-527434120.ap-south-1.elb.amazonaws.com/v1/models/cat-classifier:predict"
+url = "http://af4a6e56f32e24ae6a9bb54c05c92ba4-808383676.ap-south-1.elb.amazonaws.com/v1/models/cat-classifier:predict"
 
 with open("input.json") as f:
     payload = json.load(f)
