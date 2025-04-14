@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       throw new Error("No valid image file provided");
     }
 
-    const url = new URL(`${WEB_SERVER_URL}/classify-genric`);
+    const url = new URL(`${WEB_SERVER_URL}/classify-vegfruits`);
     console.log("web url")
     console.log(url);
     // url.searchParams.append("text", prompt as string);

@@ -35,7 +35,8 @@ HOSTNAME = socket.gethostname()
 
 # MODEL_SERVER_URL = os.environ.get("MODEL_SERVER_URL", "http://localhost:80")
 
-MODEL_SERVER_URL = os.environ.get("MODEL_SERVER_URL", "http://pedantic_bardeen:8080")
+MODEL_SERVER_URL_1 = os.environ.get("MODEL_SERVER_URL_1", "http://pedantic_bardeen:8080")
+MODEL_SERVER_URL_2 = os.environ.get("MODEL_SERVER_URL_2", "http://pedantic_bardeen:8080")
 # MODEL_SERVER_URL = "http://0.0.0.0:8080"
 # MODEL_SERVER_URL = "http://model-server-service"
 
@@ -50,16 +51,55 @@ async def shutdown():
     logger.info("Shutting down web server")
     logger.info("Cleanup complete")
 
-@app.post("/classify-genric")
-async def classify_genric(image: Annotated[bytes, File()]):
+@app.post("/classify-vegfruits")
+async def classify_vegfruits(image: Annotated[bytes, File()]):
     logger.info("Received generation request")
 
     # logger.info("MODEL_SERVER_URL-", str(MODEL_SERVER_URL))
     infer_cache = None
 
-    print("MODEL_SERVER_URL-", MODEL_SERVER_URL)
+    print("MODEL_SERVER_URL_1-", MODEL_SERVER_URL_1)
     # print("url-", url)
-    url = f"{MODEL_SERVER_URL}"
+    url = f"{MODEL_SERVER_URL_1}"
+    # response = requests.post(, data=text)
+    # Headers
+    print("url-", url)
+    image_b64 = base64.b64encode(image).decode("utf-8")
+    payload = {"instances": [{"data": image_b64 }]}
+
+    async with httpx.AsyncClient(timeout=httpx.Timeout(80.0)) as client:
+        try:
+            print("sending post request")
+            headers = {"Host": "fastapi-mamba-model-1-predictor.default.emlo.tsai", "Content-Type": "application/json"}
+
+            # files = {"image": image}
+            response = await client.post(
+                url,
+                headers=headers, json=payload
+            )
+            # response.raise_for_status()
+            print("recieved post request response")
+            print(response)
+
+            # Return the image bytes as a response with the appropriate media type
+            return response.json()
+        except Exception as e:
+            traceback.print_exc()
+            logger.error(f"Model server request failed: {str(e)}")
+            raise HTTPException(status_code=500, detail="Error from Model Endpoint")
+
+    return {"message": "error"}
+
+@app.post("/classify-sports")
+async def classify_sports(image: Annotated[bytes, File()]):
+    logger.info("Received sports api request")
+
+    # logger.info("MODEL_SERVER_URL-", str(MODEL_SERVER_URL))
+    infer_cache = None
+
+    print("MODEL_SERVER_URL_2-", MODEL_SERVER_URL_2)
+    # print("url-", url)
+    url = f"{MODEL_SERVER_URL_2}"
     # response = requests.post(, data=text)
     # Headers
     print("url-", url)
@@ -90,77 +130,6 @@ async def classify_genric(image: Annotated[bytes, File()]):
     return {"message": "error"}
 
 
-
-@app.post("/classify-vegfruits")
-async def classify_vegfruits(image: Annotated[bytes, File()]):
-    logger.info("Received generation request")
-
-    # logger.info("MODEL_SERVER_URL-", str(MODEL_SERVER_URL))
-    infer_cache = None
-
-    print("MODEL_SERVER_URL-", MODEL_SERVER_URL)
-    # print("url-", url)
-    url = f"{MODEL_SERVER_URL}/infer_vegfruits"
-    # response = requests.post(, data=text)
-    # Headers
-    print("url-", url)
-
-    async with httpx.AsyncClient(timeout=httpx.Timeout(80.0)) as client:
-        try:
-            print("sending post request")
-            files = {"image": image}
-            response = await client.post(
-                url,
-                files=files
-            )
-            # response.raise_for_status()
-            print("recieved post request response")
-            print(response)
-
-            # Return the image bytes as a response with the appropriate media type
-            return response.json()
-        except Exception as e:
-            traceback.print_exc()
-            logger.error(f"Model server request failed: {str(e)}")
-            raise HTTPException(status_code=500, detail="Error from Model Endpoint")
-
-    return {"message": "error"}
-
-
-@app.post("/classify-sports")
-async def classify_sports(image: Annotated[bytes, File()]):
-    logger.info("Received generation request")
-
-    # logger.info("MODEL_SERVER_URL-", str(MODEL_SERVER_URL))
-    infer_cache = None
-
-    print("MODEL_SERVER_URL-", MODEL_SERVER_URL)
-    # print("url-", url)
-    url = f"{MODEL_SERVER_URL}/infer_sports"
-    # response = requests.post(, data=text)
-    # Headers
-    print("url-", url)
-
-    async with httpx.AsyncClient(timeout=httpx.Timeout(80.0)) as client:
-        try:
-            print("sending post request")
-            files = {"image": image}
-            response = await client.post(
-                url,
-                files=files
-            )
-            # response.raise_for_status()
-            print("recieved post request response")
-
-            # Return the image bytes as a response with the appropriate media type
-            return response.json()
-        except Exception as e:
-            traceback.print_exc()
-            logger.error(f"Model server request failed: {str(e)}")
-            raise HTTPException(status_code=500, detail="Error from Model Endpoint")
-
-    return "Error"
-
 @app.get("/health")
 async def health_check():
     """Health check endpoint for kubernetes readiness/liveness probes"""
@@ -168,7 +137,7 @@ async def health_check():
     try:
         # Test Model Server connection
         async with httpx.AsyncClient(timeout=httpx.Timeout(30.0)) as client:
-            response = await client.get(f"{MODEL_SERVER_URL}/health")
+            response = await client.get(f"{MODEL_SERVER_URL_1}/health")
             response.raise_for_status()
             model_health = response.json()
             model_connected = True
@@ -181,7 +150,8 @@ async def health_check():
         "status": "healthy" if (model_connected) else "degraded",
         "hostname": HOSTNAME,
         "model_server": {
-            "url": MODEL_SERVER_URL,
+            "url": MODEL_SERVER_URL_1,
+            "url_2": MODEL_SERVER_URL_2,
             "connected": model_connected,
             "health": model_health,
         },
