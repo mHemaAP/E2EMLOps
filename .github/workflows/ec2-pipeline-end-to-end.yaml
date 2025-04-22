@@ -88,6 +88,20 @@ jobs:
         run: |
           echo "::set-output name=commit_id::${{ needs.build-and-push-ecr-image.outputs.commit_id }}"
 
+
+
+      # Install Terraform before calling cml runner launch 
+      #======================================================
+      - name: Install Terraform
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install terraform -y
+          terraform --version
+
+      #=================================================================
+        
+
       - name: Deploy runner on AWS EC2 
         env:
           REPO_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
