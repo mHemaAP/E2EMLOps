@@ -28,4 +28,13 @@ COPY pyproject.toml .
 
 RUN uv sync --group develop --group visuals --group testing --group prod --extra cpu --no-cache
 
+#===========================
+#ADDING DVC 
+RUN pip install dvc[s3]
+
+# Verify DVC installation
+RUN dvc --version
+
+#==================================
+
 CMD [ "bash" ]

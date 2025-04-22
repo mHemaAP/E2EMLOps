@@ -247,6 +247,17 @@ jobs:
         run: |
           cd /workspace
           mkdir -p model_storage
+
+          #==========================added dvc insall ==================
+          # Install DVC if it's not available
+          if ! command -v dvc &> /dev/null; then
+            echo "DVC not found. Installing DVC with S3 support..."
+            pip install dvc[s3]
+          fi
+          
+          # Verify DVC installation
+          dvc --version
+          #=========================================
           dvc pull -r myremote
           dvc repro -f
 
