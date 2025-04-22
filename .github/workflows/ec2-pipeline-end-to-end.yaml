@@ -120,7 +120,7 @@ jobs:
           --labels=cml-gpu \
           --idle-timeout=100 \
           --cloud-gpu=nvidia-tesla-t4
-          --cloud-init "echo 'CML Runner debug mode started!'"
+          
 
   train-and-deploy:
     runs-on: [cml-gpu]
