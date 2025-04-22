@@ -247,6 +247,10 @@ jobs:
         run: |
           cd /workspace
           mkdir -p model_storage
+          #commented out this part
+          # dvc pull -r myremote
+          # dvc repro -f
+
 
           #==========================added dvc insall ==================
           # Install DVC if it's not available
@@ -256,10 +260,31 @@ jobs:
           fi
           
           # Verify DVC installation
-          dvc --version
+          dvc --version 
+
+          # Check if we're in a DVC repository, initialize if not
+          if [ ! -d ".dvc" ]; then
+            echo "Initializing DVC repository..."
+            dvc init
+            
+            # Configure DVC remote using the secret bucket name
+            echo "Configuring DVC remote..."
+            dvc remote add -d myremote s3://${{ secrets.S3_BUCKET_NAME }}/dvc-remote
+            
+            # Configure AWS credentials for DVC using environment variables
+            echo "AWS credentials are provided via environment variables"
+          fi
+          
+          # Now run DVC commands with verbosity for better debugging
+          echo "Pulling from DVC remote..."
+          dvc pull -r myremote -v
+          
+          echo "Running DVC pipeline..."
+          dvc repro -f -v
+
+
           #=========================================
-          dvc pull -r myremote
-          dvc repro -f
+         
 
       - name: Read best checkpoint file name
         id: read_checkpoint
