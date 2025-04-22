@@ -3,7 +3,15 @@ FROM python:3.12.7-slim-bookworm
 
 # The installer requires curl (and certificates) to download the release archive
 # build-essential is for "MAKE"
-RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential ca-certificates
+
+#RUN apt-get update && apt-get install -y --no-install-recommends curl build-essential ca-certificates
+# edited this part fo docker file
+#============================================
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl build-essential ca-certificates procps lsb-release \
+    && rm -rf /var/lib/apt/lists/*
+#========================================
 
 # Download the latest installer
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
