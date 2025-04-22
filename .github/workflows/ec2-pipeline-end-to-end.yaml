@@ -116,6 +116,7 @@ jobs:
           --cloud-type=g4dn.xlarge \
           --cloud-hdd-size=64 \
           --cloud-spot \
+          --cloud-debug \
           --single \
           --labels=cml-gpu \
           --idle-timeout=100 \
