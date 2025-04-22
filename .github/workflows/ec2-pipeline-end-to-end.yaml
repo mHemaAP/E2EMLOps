@@ -127,7 +127,7 @@ jobs:
     needs: [build-and-push-ecr-image, launch-runner]
     outputs:
       commit_id: ${{ steps.get_commit_id_ec2.outputs.commit_id }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     
     container:
       # Note private registery we need credentials
@@ -182,16 +182,30 @@ jobs:
           env | grep AWS || true
           hostname
           whoami
-          pwd
+          pwd  
 
-          echo "checking files"
-          ls -d /__w/emlo4-session-10-ajithvcoder/emlo4-session-10-ajithvcoder/* || true
 
-          echo "checking files 2"
-          ls -a /__w/emlo4-session-10-ajithvcoder/emlo4-session-10-ajithvcoder || true
+      - name: Verify workspace contents
+        run: |
+          echo "GITHUB_WORKSPACE is: $GITHUB_WORKSPACE"
+          echo "Listing contents of the GitHub workspace:"
+          ls -R "$GITHUB_WORKSPACE" || true
+
+          echo "Listing contents of /workspace (container mount):"
+          ls -R /workspace || true
+
+          # =============================
+          # COMMENTING OUT REPO NAME 
+
+          # echo "checking files"
+          # ls -d /__w/emlo4-session-10-ajithvcoder/emlo4-session-10-ajithvcoder/* || true
+
+          # echo "checking files 2"
+          # ls -a /__w/emlo4-session-10-ajithvcoder/emlo4-session-10-ajithvcoder || true
           
-          echo "checking files 2"
-          ls -a /workspace || true
+          # echo "checking files 2"
+          # ls -a /workspace || true
+          #===============================================
 
           # Docker installation inside a docker container
           # curl -fsSL https://get.docker.com -o get-docker.sh
