@@ -105,8 +105,8 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           TF_LOG: DEBUG
           CML_VERBOSE: true
-          CML_RUNNER_CLOUD_AWS_SUBNET_ID: ${{ secrets.AWS_SUBNET_ID_1 }},${{ secrets.AWS_SUBNET_ID_2 }},${{ secrets.AWS_SUBNET_ID_3 }}
-          CML_RUNNER_CLOUD_AWS_VPC_ID: ${{ secrets.AWS_VPC_ID }}
+          AWS_DEFAULT_VPC: ${{ secrets.AWS_VPC_ID }}
+          AWS_DEFAULT_SUBNET: ${{ secrets.AWS_SUBNET_ID_1 }},${{ secrets.AWS_SUBNET_ID_2 }},${{ secrets.AWS_SUBNET_ID_3 }}
         run: |
           echo "Launching EC2 instance with GPU for training..."
           cml runner launch \
