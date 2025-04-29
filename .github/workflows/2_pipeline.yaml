@@ -105,6 +105,8 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           TF_LOG: DEBUG
           CML_VERBOSE: true
+          CML_RUNNER_CLOUD_AWS_SUBNET_ID: ${{ secrets.AWS_SUBNET_ID }}
+          CML_RUNNER_CLOUD_AWS_VPC_ID: ${{ secrets.AWS_VPC_ID }}
         run: |
           echo "Launching EC2 instance with GPU for training..."
           cml runner launch \
@@ -113,8 +115,6 @@ jobs:
             --cloud-region=${{ env.AWS_REGION }} \
             --cloud-type=g4dn.xlarge,g4dn.2xlarge, \
             --cloud-hdd-size=64 \
-            --cloud-subnet-id=${{ secrets.AWS_SUBNET_ID_1 }},${{ secrets.AWS_SUBNET_ID_2 }},${{ secrets.AWS_SUBNET_ID_3 }} \             
-            --cloud-vpc-id=${{ secrets.AWS_VPC_ID }} \
             --cloud-spot \
             --single \
             --labels=cml-gpu \
