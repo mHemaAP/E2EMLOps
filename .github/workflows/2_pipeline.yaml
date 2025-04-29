@@ -124,7 +124,7 @@ jobs:
     timeout-minutes: 20
     
     container:
-      image: ${{ needs.build-and-push-ecr-image.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest      options: --gpus all --workdir /workspace
+      image: ${{ needs.build-and-push-ecr-image.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest      
       #image: ${{ needs.build-and-push-ecr-image.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
       options: --gpus all --workdir /workspace
       credentials:
