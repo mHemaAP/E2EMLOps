@@ -133,7 +133,7 @@ jobs:
             --single \
             --labels=cml-gpu \
             --idle-timeout=100 \
-            --cloud-gpu=nvidia-tesla-t4 \
+            --cloud-gpu=nvidia-tesla-t4 
             # --cloud-subnet-id="$SELECTED_SUBNET" \
             # --cloud-vpc="$AWS_DEFAULT_VPC" \
             # --log-level=debug
