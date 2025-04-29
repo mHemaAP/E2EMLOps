@@ -95,8 +95,14 @@ jobs:
       - name: Pass Commit ID From Previous Job
         id: get_commit_id_runner
         run: |
-          echo "commit_id=${{ needs.build-and-push-ecr-image.outputs.commit_id }}" >> $GITHUB_OUTPUT
+          echo "commit_id=${{ needs.build-and-push-ecr-image.outputs.commit_id }}" >> $GITHUB_OUTPUT 
 
+#-----------------------adding debug--------------------------in region name-----
+      - name: Debug Region
+        run: |
+          echo "Region is: '${AWS_REGION}'"
+          echo "Length: ${#AWS_REGION}"
+#--------------------------------------------------------------------------
       - name: Deploy GPU Runner on AWS EC2
         env:
           REPO_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -108,7 +114,8 @@ jobs:
           #AWS_DEFAULT_VPC: ${{ secrets.AWS_VPC_ID }}
           #AWS_DEFAULT_SUBNET: ${{ secrets.AWS_SUBNET_ID_1 }},${{ secrets.AWS_SUBNET_ID_2 }},${{ secrets.AWS_SUBNET_ID_3 }}
         run: |
-          
+
+                   
           # SUBNETS="$AWS_DEFAULT_SUBNET"
           # # Pick a random subnet
           # IFS=',' read -r -a subnet_array <<< "$SUBNETS"
