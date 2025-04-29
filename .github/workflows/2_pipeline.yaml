@@ -76,7 +76,11 @@ jobs:
     needs: build-and-push-ecr-image
     outputs:
       commit_id: ${{ steps.get_commit_id_runner.outputs.commit_id }}
-    
+      
+    env:                         #added for debugging
+      TF_LOG: DEBUG
+      CML_VERBOSE: true 
+      
     steps:
       - uses: actions/checkout@v3
       - uses: iterative/setup-cml@v2
@@ -105,7 +109,7 @@ jobs:
             --cloud=aws \
             --name=ml-training-instance \
             --cloud-region=${{ env.AWS_REGION }} \
-            --cloud-type=g4dn.xlarge \
+            --cloud-type=g4dn.xlarge,g4dn.2xlarge, \
             --cloud-hdd-size=64 \
             --cloud-spot \
             --single \
