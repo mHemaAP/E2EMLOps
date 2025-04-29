@@ -108,7 +108,8 @@ jobs:
           AWS_DEFAULT_VPC: ${{ secrets.AWS_VPC_ID }}
           AWS_DEFAULT_SUBNET: ${{ secrets.AWS_SUBNET_ID_1 }},${{ secrets.AWS_SUBNET_ID_2 }},${{ secrets.AWS_SUBNET_ID_3 }}
         run: |
-
+          
+          SUBNETS="$AWS_DEFAULT_SUBNET"
           # Pick a random subnet
           IFS=',' read -r -a subnet_array <<< "$SUBNETS"
           RANDOM_INDEX=$((RANDOM % ${#subnet_array[@]}))
@@ -119,16 +120,16 @@ jobs:
           cml runner launch \
             --cloud=aws \
             --name=ml-training-instance \
-            --cloud-region=${{AWS_REGION}} \
+            --cloud-region="$AWS_REGION" \
             --cloud-type=g4dn.xlarge \
             --cloud-hdd-size=64 \
             --cloud-spot \
             --single \
             --labels=cml-gpu \
             --idle-timeout=100 \
-            --cloud-gpu=nvidia-tesla-t4
-            --cloud-subnet-id=${{AWS_DEFAULT_SUBNET}} \
-            --cloud-vpc=${{AWS_DEFAULT_VPC}}
+            --cloud-gpu=nvidia-tesla-t4 \
+            --cloud-subnet-id="$SELECTED_SUBNET" \
+            --cloud-vpc="$AWS_DEFAULT_VPC" \
             --log-level=debug
 
   #----------------------------------------
