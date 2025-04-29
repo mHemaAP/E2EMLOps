@@ -85,12 +85,12 @@ jobs:
       - uses: actions/checkout@v3
       - uses: iterative/setup-cml@v2
 
-      # - name: Install Terraform
-      #   run: |
-      #     curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-      #     sudo apt-add-repository "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-      #     sudo apt-get update && sudo apt-get install terraform -y
-      #     terraform --version
+      - name: Install Terraform
+        run: |
+          curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+          sudo apt-add-repository "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+          sudo apt-get update && sudo apt-get install terraform -y
+          terraform --version
 
       - name: Pass Commit ID From Previous Job
         id: get_commit_id_runner
