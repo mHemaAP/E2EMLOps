@@ -105,16 +105,16 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           TF_LOG: DEBUG
           CML_VERBOSE: true
-          AWS_DEFAULT_VPC: ${{ secrets.AWS_VPC_ID }}
-          AWS_DEFAULT_SUBNET: ${{ secrets.AWS_SUBNET_ID_1 }},${{ secrets.AWS_SUBNET_ID_2 }},${{ secrets.AWS_SUBNET_ID_3 }}
+          #AWS_DEFAULT_VPC: ${{ secrets.AWS_VPC_ID }}
+          #AWS_DEFAULT_SUBNET: ${{ secrets.AWS_SUBNET_ID_1 }},${{ secrets.AWS_SUBNET_ID_2 }},${{ secrets.AWS_SUBNET_ID_3 }}
         run: |
           
-          SUBNETS="$AWS_DEFAULT_SUBNET"
-          # Pick a random subnet
-          IFS=',' read -r -a subnet_array <<< "$SUBNETS"
-          RANDOM_INDEX=$((RANDOM % ${#subnet_array[@]}))
-          SELECTED_SUBNET="${subnet_array[$RANDOM_INDEX]}"    
-          echo "Launching EC2 instance in subnet: $SELECTED_SUBNET"
+          # SUBNETS="$AWS_DEFAULT_SUBNET"
+          # # Pick a random subnet
+          # IFS=',' read -r -a subnet_array <<< "$SUBNETS"
+          # RANDOM_INDEX=$((RANDOM % ${#subnet_array[@]}))
+          # SELECTED_SUBNET="${subnet_array[$RANDOM_INDEX]}"    
+          # echo "Launching EC2 instance in subnet: $SELECTED_SUBNET"
           
           echo "Launching EC2 instance with GPU for training..."
           cml runner launch \
@@ -128,9 +128,9 @@ jobs:
             --labels=cml-gpu \
             --idle-timeout=100 \
             --cloud-gpu=nvidia-tesla-t4 \
-            --cloud-subnet-id="$SELECTED_SUBNET" \
-            --cloud-vpc="$AWS_DEFAULT_VPC" \
-            --log-level=debug
+            # --cloud-subnet-id="$SELECTED_SUBNET" \
+            # --cloud-vpc="$AWS_DEFAULT_VPC" \
+            # --log-level=debug
 
   #----------------------------------------
   # JOB 3: Train model and deploy
