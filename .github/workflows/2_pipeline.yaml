@@ -124,9 +124,9 @@ jobs:
     timeout-minutes: 20
     
     container:
-      image: ${{ needs.build-and-push-ecr-image.outputs.registry }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest      
-      #image: ${{ needs.build-and-push-ecr-image.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+      image: 390844750487.dkr.ecr.ap-south-1.amazonaws.com/abhiya-ecr-project
       options: --gpus all --workdir /workspace
+      
       credentials:
           username: ${{ needs.build-and-push-ecr-image.outputs.docker_username }}
           password: ${{ needs.build-and-push-ecr-image.outputs.docker_password }}
