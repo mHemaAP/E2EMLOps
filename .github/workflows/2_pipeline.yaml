@@ -97,12 +97,12 @@ jobs:
         run: |
           echo "commit_id=${{ needs.build-and-push-ecr-image.outputs.commit_id }}" >> $GITHUB_OUTPUT 
 
-#-----------------------adding debug--------------------------in region name-----
+      #-----------------------adding debug--------------------------in region name-----
       - name: Debug Region
         run: |
           echo "Region is: '${AWS_REGION}'"
           echo "Length: ${#AWS_REGION}"
-#--------------------------------------------------------------------------
+       #--------------------------------------------------------------------------
       - name: Deploy GPU Runner on AWS EC2
         env:
           REPO_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -113,9 +113,7 @@ jobs:
           CML_VERBOSE: true
           #AWS_DEFAULT_VPC: ${{ secrets.AWS_VPC_ID }}
           #AWS_DEFAULT_SUBNET: ${{ secrets.AWS_SUBNET_ID_1 }},${{ secrets.AWS_SUBNET_ID_2 }},${{ secrets.AWS_SUBNET_ID_3 }}
-        run: |
-
-                   
+        run: |                                      
           # SUBNETS="$AWS_DEFAULT_SUBNET"
           # # Pick a random subnet
           # IFS=',' read -r -a subnet_array <<< "$SUBNETS"
@@ -124,6 +122,7 @@ jobs:
           # echo "Launching EC2 instance in subnet: $SELECTED_SUBNET"
           
           echo "Launching EC2 instance with GPU for training..."
+          
           cml runner launch \
             --cloud=aws \
             --name=ml-training-instance \
