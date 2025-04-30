@@ -127,8 +127,8 @@ jobs:
         with:
           mode: stop
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          label: ${{ needs.start-runner.outputs.label }}
-          ec2-instance-id: ${{ needs.start-runner.outputs.ec2-instance-id }}
+          label: ${{ needs.launch-runner.outputs.label }}
+          ec2-instance-id: ${{ needs.launch-runner.outputs.ec2-instance-id }}
 
 
       # - name: Deploy runner on AWS EC2 
