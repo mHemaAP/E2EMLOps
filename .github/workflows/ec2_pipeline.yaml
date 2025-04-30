@@ -87,7 +87,6 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
         run: |
           cml runner launch \
-          --log-level=debug \
           --cloud=aws \
           --name=session-18 \
           --cloud-region=ap-south-1 \
