@@ -101,8 +101,8 @@ jobs:
           ec2-image-id: ami-01654480b8a1994bd
           ec2-instance-type: g4dn.xlarge
 
-          # subnet-id: subnet-0890d22a65f85adcb
-          # security-group-id: sg-00fc9c92dc8bd2ea7 # vpc-0bee66831ea737000
+          subnet-id: subnet-0890d22a65f85adcb
+          security-group-id: sg-00fc9c92dc8bd2ea7 # vpc-0bee66831ea737000
           market-type: "spot"
 
   do-the-job:
