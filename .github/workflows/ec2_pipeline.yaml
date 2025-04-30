@@ -67,8 +67,8 @@ jobs:
     outputs:
       commit_id: ${{ steps.get_commit_id_runner.outputs.commit_id }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: iterative/setup-cml@v3
+      # - uses: actions/checkout@v4
+      # - uses: iterative/setup-cml@v3
 
       - name: Display the commit ID
         run: |
