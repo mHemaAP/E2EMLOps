@@ -67,7 +67,8 @@ jobs:
     outputs:
       commit_id: ${{ steps.get_commit_id_runner.outputs.commit_id }}
     steps:
-      # - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
       # - uses: iterative/setup-cml@v3
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -87,7 +88,7 @@ jobs:
 
       - name: Start EC2 runner
         id: start-ec2-runner
-        uses: aws-actions/ec2-github-runner@v2
+        uses: machulav/ec2-github-runner@v2
         with:
           mode: start
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -98,7 +99,7 @@ jobs:
           market-type: spot
 
       - name: Run job on EC2 runner
-        uses: aws-actions/ec2-github-runner@v2
+        uses: machulav/ec2-github-runner@v2
         with:
           mode: run-job
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -112,7 +113,7 @@ jobs:
 
       - name: Stop EC2 runner
         if: always()
-        uses: aws-actions/ec2-github-runner@v2
+        uses: machulav/ec2-github-runner@v2
         with:
           mode: stop
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
