@@ -87,8 +87,8 @@ jobs:
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           ec2-image-id: ami-04a91d999d92a2640  # AMI with CUDA/GPU drivers
           ec2-instance-type: g4dn.xlarge
-          subnet-id: subnet-0890d22a65f85adcb
-          security-group-id: sg-01bd87e0b72521b2a
+          subnet-id: subnet-0bd682e0d0c12e92c
+          security-group-id: sg-09ff4e4edf96eb435
           market-type: spot
 
       - name: Run job on EC2 runner
