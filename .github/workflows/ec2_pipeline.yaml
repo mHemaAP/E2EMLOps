@@ -96,7 +96,35 @@ jobs:
           --single \
           --labels=cml-gpu \
           --idle-timeout=100 \
-          --cloud-gpu=nvidia-tesla-t4
+          --cloud-gpu=nvidia-tesla-t4 \
+          --repo=https://github.com/ajithvcoder/E2EMLOps
+
+      - name: Verify runner registration
+        env:
+          REPO_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          echo "Waiting for runner to register..."
+          attempt=0
+          max_attempts=15
+          
+          while [ $attempt -lt $max_attempts ]
+          do
+            echo "Checking if runner is registered (attempt $((attempt+1))/$max_attempts)..."
+            if cml runner list | grep "session-18"; then
+              echo "Runner successfully registered!"
+              break
+            fi
+            
+            attempt=$((attempt+1))
+            sleep 20
+          done
+          
+          if [ $attempt -eq $max_attempts ]; then
+            echo "Runner failed to register within timeout period"
+            echo "Runner logs:"
+            cml runner logs session-18 || echo "Could not get logs"
+            exit 1
+          fi
 
   train-and-deploy:
       runs-on: [cml-gpu]
