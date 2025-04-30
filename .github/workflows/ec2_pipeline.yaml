@@ -92,12 +92,12 @@ jobs:
         with:
           mode: start
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          # ec2-image-id: ami-04a91d999d92a2640  # AMI with CUDA/GPU drivers
+          ec2-image-id: ami-0e35ddab05955cf57  # AMI with CUDA/GPU drivers
           # ec2-instance-type: g4dn.xlarge
           ec2-instance-type: t3a.medium
           subnet-id: subnet-0890d22a65f85adcb
           security-group-id: sg-00fc9c92dc8bd2ea7 # vpc-0bee66831ea737000
-          market-type: spot
+          # market-type: spot
 
       - name: Run job on EC2 runner
         uses: machulav/ec2-github-runner@v2
