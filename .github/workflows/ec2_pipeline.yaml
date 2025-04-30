@@ -100,26 +100,6 @@ jobs:
           security-group-id: sg-00fc9c92dc8bd2ea7 # vpc-0bee66831ea737000
           # market-type: spot
 
-      - name: Run job on EC2 runner
-        uses: machulav/ec2-github-runner@v2
-        with:
-          mode: run-job
-          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          runner-label: ${{ steps.start-ec2-runner.outputs.label }}
-          job-script: |
-            git clone ${{ github.server_url }}/${{ github.repository }}.git
-            cd $(basename ${{ github.repository }})
-            git checkout ${{ github.sha }}
-            # Your training code here
-            nvidia-smi
-
-      - name: Stop EC2 runner
-        if: always()
-        uses: machulav/ec2-github-runner@v2
-        with:
-          mode: stop
-          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          label: ${{ steps.start-ec2-runner.outputs.label }}
   do-the-job:
     name: Do the job on the runner
     needs: launch-runner # required to start the main job when the runner is ready
