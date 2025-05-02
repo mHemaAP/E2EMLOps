@@ -84,7 +84,7 @@ Install metric server properly
 #### KNative
 
 ```
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+ -- ignore -kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.16.0/serving-crds.yaml
 kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.16.0/serving-core.yaml
 ```
@@ -128,6 +128,8 @@ kubectl apply --server-side -f https://github.com/kserve/kserve/releases/downloa
 ### S3 Setup
 Create S3 Service Account and Create IRSA for S3 Read Only Access Note: These are already done in previous assignments i.e the policy creation here we are only attaching the policy
 
+# TODO: Check AmazonS3ReadOnlyAccess
+
 ```
 eksctl create iamserviceaccount \
 --cluster=basic-cluster \
@@ -145,7 +147,7 @@ kubectl patch serviceaccount s3-read-only -p '{"secrets": [{"name": "s3-secret"}
 
 Test if `imagenet-classifier` works fine with all m1, m2 and m3 models
 
-- kubectl apply -f imagenet-classifier.yml
+- kubectl apply -f imagenet-classifier-1.yml
 
 Ingress details
 
@@ -263,10 +265,11 @@ Delete argocd deployments
 kubectl get app -n argocd
 kubectl patch app fastapi-helm -p '{"metadata": {"finalizers": ["resources-finalizer.argocd.argoproj.io"]}}' --type merge -n argocd
 kubectl delete app fastapi-helm -n argocd
-</debug>
 
-kubectl delete app APP_NAME
+# if not deleted properly
+kubectl delete app fastapi-helm
 kubectl patch app fastapi-helm -p '{"metadata": {"finalizers": null}}' --type merge -n argocd
+</debug>
 ```
 
 ```

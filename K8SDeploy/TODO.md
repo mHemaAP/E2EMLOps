@@ -1,7 +1,7 @@
 2024-04-14
 
-1. Fix Kubernetes app storage urls with vegfruits and sports location, check if we need to use two MODEL_URLS
-2. Make sure when train.py is triggered, it stores the best model files to S3 location for both models
+1. Fix Kubernetes app storage urls with vegfruits and sports location, check if we need to use two MODEL_URLS - done
+2. Make sure when train.py is triggered, it stores the best model in bin format.
 3. Then another script transfer_mar.py takes that from S3 location and transfers as .mar files
 
 Github actions
@@ -21,3 +21,32 @@ kubectl exec --stdin --tty shell-demo -- /bin/bash
 kubectl exec mypod -c ruby-container -i -t -- bash -il
 </debug>
 -----------------
+
+
+Project 1: Train.py and Kubernetes deployment with ArgoCD
+Pending works
+    1. Demo video
+    2. Github actions
+    - Github actions -> triggering a ec2, training the mode, saving to s3, using k8deploy to scale with argocd and do load testing
+    - For argocd get the accesskey, secretkey and create a yaml file for this repo https://github.com/ajithvcoder/emlo4-session-18-ajithvcoder-canary-argocd-kserve
+    - The model end point also should be changed in `model-server.cm.yml` file in this repo https://github.com/ajithvcoder/emlo4-session-18-ajithvcoder-canary-argocd-kserve . Use this command `kubectl get pods,svc -n istio-system`
+    3. Kubernetes
+    - K8SDeploy load testing
+    - K8SDeploy make sport-classifer to work with K8Serve -> Facing issue with K8Server + Torchserve + loading onnx model
+    4. Training Part
+    - All done
+
+
+Project 2: Lambda service -(No need to train just use s3: Optional)
+Pending:
+- Complete on - live 
+- github actions
+- Readme.md - Deployment method
+
+Project 3: Hugginng face + gradio - (No need to train just use s3: Optional)
+Pending:
+- Complete on - live 
+- github action
+- Readme.md - Deployment method
+
+Overall README
