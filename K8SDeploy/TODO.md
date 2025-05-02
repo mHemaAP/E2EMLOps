@@ -11,7 +11,7 @@ Github actions
 4. Check scaling/load test and note the results
 5. Comment it in pull request
 
------------
+```
 <debug>
 
 kubectl exec pods/imagenet-classifier-1-predictor-00001-deployment-6f997448fpxqzl   -it --namespace default /bin/bash
@@ -20,10 +20,13 @@ kubectl exec --stdin --tty shell-demo -- /bin/bash
 
 kubectl exec mypod -c ruby-container -i -t -- bash -il
 </debug>
------------------
+```
 
+### Pending works
 
-Project 1: Train.py and Kubernetes deployment with ArgoCD
+2025-05-02
+
+**Project 1: Train.py and Kubernetes deployment with ArgoCD**
 
 Pending works
 
@@ -39,14 +42,14 @@ Pending works
     - All done
 
 
-Project 2: Lambda service -(No need to train just use s3: Optional)
+**Project 2: Lambda service -(No need to train just use s3: Optional)**
 
 Pending:
 - Complete on - live 
 - github actions
 - Readme.md - Deployment method
 
-Project 3: Hugginng face + gradio - (No need to train just use s3: Optional)
+**Project 3: Hugginng face + gradio - (No need to train just use s3: Optional)**
 
 Pending:
 - Complete on - live 
