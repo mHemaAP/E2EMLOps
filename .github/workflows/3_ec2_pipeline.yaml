@@ -135,9 +135,8 @@ jobs:
       image: 390844750487.dkr.ecr.ap-south-1.amazonaws.com/abhiya-ecr-project
       options: --gpus all --workdir /workspace
       credentials:
-          username: ${{ needs.build-and-push-ecr-image.outputs.docker_username }}
-          password: ${{ needs.build-and-push-ecr-image.outputs.docker_password }}
-             
+        username: ${{ needs.build-and-push-ecr-image.outputs.docker_username }}
+        password: ${{ needs.build-and-push-ecr-image.outputs.docker_password }}
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
