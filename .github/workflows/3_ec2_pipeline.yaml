@@ -1,4 +1,4 @@
-name: ML Pipeline - Build, Train, Test and Deploy
+name: trail 3 pipeline
 
 # When to run this workflow
 on:
