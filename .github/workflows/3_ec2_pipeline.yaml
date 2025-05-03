@@ -24,8 +24,8 @@ jobs:
     outputs:
       commit_id: ${{ steps.get_commit_id.outputs.commit_id }}
       registry: ${{ steps.login-ecr.outputs.registry }}
-      # docker_username: ${{ steps.login-ecr.outputs.docker_username_390844750487_dkr_ecr_ap_south_1_amazonaws_com }}
-      # docker_password: ${{ steps.login-ecr.outputs.docker_password_390844750487_dkr_ecr_ap_south_1_amazonaws_com }}
+      docker_username: ${{ steps.login-ecr.outputs.docker_username_390844750487_dkr_ecr_ap_south_1_amazonaws_com }}
+      docker_password: ${{ steps.login-ecr.outputs.docker_password_390844750487_dkr_ecr_ap_south_1_amazonaws_com }}
 
     steps:
       - name: Checkout Code
@@ -134,9 +134,11 @@ jobs:
     container:
       image: 390844750487.dkr.ecr.ap-south-1.amazonaws.com/abhiya-ecr-project
       options: --gpus all --workdir /workspace
-      # credentials:
-      #   username: ${{ needs.build-and-push-ecr-image.outputs.docker_username }}
-      #   password: ${{ needs.build-and-push-ecr-image.outputs.docker_password }}
+      credentials:
+        username: ${{ needs.build-and-push-ecr-image.outputs.docker_username }}
+        password: ${{ needs.build-and-push-ecr-image.outputs.docker_password }}
+      
+        
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
