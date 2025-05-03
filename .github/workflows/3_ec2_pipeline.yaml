@@ -31,7 +31,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install  Utilities
+      - name: Install Utilities
         run: |
           sudo apt-get update
           sudo apt-get install -y jq unzip
@@ -53,16 +53,11 @@ jobs:
         id: get_commit_id
         run: |
           latest_commit=$(git rev-parse HEAD)
-          echo "::set-output name=commit_id::$latest_commit" 
-        # echo "commit_id=$latest_commit" >> $GITHUB_OUTPUT
+          echo "commit_id=$latest_commit" >> $GITHUB_OUTPUT
       
       - name: Display the commit ID        
         run: |
           echo "Latest commit ID is: ${{ steps.get_commit_id.outputs.commit_id }}"
-
-      
-      
-      
       
       - name: Build and Push Docker Image
         id: build-image
@@ -76,12 +71,6 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-
-
-
-
-
-
   #----------------------------------------
   # JOB 2: Launch EC2 instance with GPU for training
   #----------------------------------------
@@ -94,32 +83,21 @@ jobs:
       ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
       commit_id: ${{ steps.get_commit_id_runner.outputs.commit_id }}
       
-    env:                         #added for debugging
+    env:
       TF_LOG: DEBUG
       CML_VERBOSE: true 
       
     steps:
       - name: Checkout Code
-      - uses: actions/checkout@v4
-      #- uses: iterative/setup-cml@v2
+        uses: actions/checkout@v4
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}	
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      #- name: Install Terraform
-        #run: |
-          # curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-          # sudo apt-add-repository "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-          # sudo apt-get update && sudo apt-get install terraform -y
-          # terraform --version
-
-      #- name: Pass Commit ID From Previous Job
-        #id: get_commit_id_runner
-        #run: |
-         # echo "commit_id=${{ needs.build-and-push-ecr-image.outputs.commit_id }}" >> $GITHUB_OUTPUT 
       - name: Display the commit ID
         run: |
           echo "Latest commit ID is: ${{ needs.build-and-push-ecr-image.outputs.commit_id }}"
@@ -127,9 +105,7 @@ jobs:
       - name: Get latest commit ID
         id: get_commit_id_runner
         run: |
-          echo "::set-output name=commit_id::${{ needs.build-and-push-ecr-image.outputs.commit_id }}"
-      
-      
+          echo "commit_id=${{ needs.build-and-push-ecr-image.outputs.commit_id }}" >> $GITHUB_OUTPUT
       
       - name: Start EC2 runner
         id: start-ec2-runner
@@ -137,122 +113,27 @@ jobs:
         with:
           mode: start
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          # Normal instance
-          # ec2-image-id: ami-0e35ddab05955cf57  
-          # ec2-instance-type: t3a.medium
-
           # AMI with CUDA/GPU drivers
           ec2-image-id: ami-01654480b8a1994bd
           ec2-instance-type: g4dn.xlarge
-
-          subnet-id: ${{ secrets.AWS_SUBNET_ID_1 }}  #subnet-0890d22a65f85adcb
-          security-group-id: sg-00fc9c92dc8bd2ea7 # vpc-0bee66831ea737000  # ADD THIS
+          subnet-id: ${{ secrets.AWS_SUBNET_ID_1 }}
+          security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID }}
           market-type: "spot"
-
-  # do-the-job:
-  #   name: Do the job on the runner
-  #   needs: launch-runner # required to start the main job when the runner is ready
-  #   runs-on: ${{ needs.launch-runner.outputs.label }} # run the job on the newly created runner
-  #   steps:
-  #     - name: Hello World
-  #       run: echo 'Hello World!'
-
-
-
-
-
-
-
-
-
-  # stop-runner:
-  #   name: Stop self-hosted EC2 runner
-  #   needs:
-  #     - launch-runner # required to get output from the start-runner job
-  #     - do-the-job # required to wait when the main job is done
-  #   runs-on: ubuntu-latest
-  #   if: ${{ always() }} # required to stop the runner even if the error happened in the previous jobs
-  #   steps:
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
-  #     - name: Stop EC2 runner
-  #       uses: machulav/ec2-github-runner@v2.3.9
-  #       with:
-  #         mode: stop
-  #         github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  #         label: ${{ needs.launch-runner.outputs.label }}
-  #         ec2-instance-id: ${{ needs.launch-runner.outputs.ec2-instance-id }}
-  #     - name: Debug Region
-  #       run: |
-  #         echo "Region is: '${AWS_REGION}'"
-  #         echo "Length: ${#AWS_REGION}"
-       #--------------------------------------------------------------------------
-      # - name: Deploy GPU Runner on AWS EC2
-      #   env:
-      #     REPO_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     AWS_REGION: ${{ secrets.AWS_REGION }}
-      #     TF_LOG: DEBUG
-      #     CML_VERBOSE: true
-      #     #AWS_DEFAULT_VPC: ${{ secrets.AWS_VPC_ID }}
-      #     #AWS_DEFAULT_SUBNET: ${{ secrets.AWS_SUBNET_ID_1 }},${{ secrets.AWS_SUBNET_ID_2 }},${{ secrets.AWS_SUBNET_ID_3 }}
-      #   run: |                                      
-      #     # SUBNETS="$AWS_DEFAULT_SUBNET"
-      #     # # Pick a random subnet
-      #     # IFS=',' read -r -a subnet_array <<< "$SUBNETS"
-      #     # RANDOM_INDEX=$((RANDOM % ${#subnet_array[@]}))
-      #     # SELECTED_SUBNET="${subnet_array[$RANDOM_INDEX]}"    
-      #     # echo "Launching EC2 instance in subnet: $SELECTED_SUBNET"
-          
-      #     echo "Launching EC2 instance with GPU for training..."
-          
-      #     cml runner launch \
-      #       --cloud=aws \
-      #       --name=ml-training-instance \
-      #       --cloud-region="$AWS_REGION" \
-      #       --cloud-type=g4dn.xlarge \
-      #       --cloud-hdd-size=64 \
-      #       --cloud-spot \
-      #       --single \
-      #       --labels=cml-gpu \
-      #       --idle-timeout=100 \
-      #       --cloud-gpu=nvidia-tesla-t4 
-      #       # --cloud-subnet-id="$SELECTED_SUBNET" \
-      #       # --cloud-vpc="$AWS_DEFAULT_VPC" \
-      #       # --log-level=debug
 
   #----------------------------------------
   # JOB 3: Train model and deploy
   #----------------------------------------
-
   do-the-job:
     name: Train Models and Deploy
-    needs: launch-runner # required to start the main job when the runner is ready
-    runs-on: ${{ needs.launch-runner.outputs.label }} # run the job on the newly created runner
+    needs: launch-runner
+    runs-on: ${{ needs.launch-runner.outputs.label }}
     outputs:
       commit_id: ${{ steps.get_commit_id_ec2.outputs.commit_id }}
     timeout-minutes: 20
-    # steps:
-    #   - name: Hello World
-    #     run: echo 'Hello World!'
-
-  # train-and-deploy:
-  #   name: 🧠 Train Models and Deploy
-  #   runs-on: [cml-gpu]
-  #   needs: [build-and-push-ecr-image, launch-runner]
-  #   outputs:
-  #     commit_id: ${{ steps.get_commit_id_ec2.outputs.commit_id }}
-  #   timeout-minutes: 20
     
     container:
       image: 390844750487.dkr.ecr.ap-south-1.amazonaws.com/abhiya-ecr-project
       options: --gpus all --workdir /workspace
-      
       credentials:
           username: ${{ needs.build-and-push-ecr-image.outputs.docker_username }}
           password: ${{ needs.build-and-push-ecr-image.outputs.docker_password }}
@@ -309,12 +190,10 @@ jobs:
           
           # Use the training command from your Makefile
           make tsports
-          # HYDRA_FULL_ERROR=1 python src/backend/torch_local/train.py script=true name=sports callbacks.model_checkpoint.filename=sports
           
           # Evaluate model
           echo "📊 Evaluating Sports Model..."
           make esports
-          #HYDRA_FULL_ERROR=1 python src/backend/torch_local/eval.py experiment=esports
           
           # Save model path
           find /workspace -name "sports*.pt" | head -1 > /workspace/model_storage/sports_model_checkpoint.txt
@@ -329,12 +208,10 @@ jobs:
           
           # Use the training command from your Makefile
           make tvegfruits
-          #python src/backend/torch_local/train.py model=mvegfruits data=dvegfruits script=true name=vegfruits callbacks.model_checkpoint.filename=vegfruits
           
           # Evaluate model
-          make evegfruits
           echo "📊 Evaluating Vegetables & Fruits Model..."
-          #HYDRA_FULL_ERROR=1 python src/backend/torch_local/eval.py experiment=evegfruits
+          make evegfruits
           
           # Save model path
           find /workspace -name "vegfruits*.pt" | head -1 > /workspace/model_storage/vegfruits_model_checkpoint.txt
@@ -383,21 +260,22 @@ jobs:
             echo "⚠️ No Vegetables & Fruits model checkpoint path found" 
           fi
           
-      # Uncomment to enable Hugging Face deployment
-      # - name: Deploy to Hugging Face
-      #   env:
-      #     HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      #   run: |
-      #     cd /workspace/gradio_demo/
-      #     python -c 'import huggingface_hub; huggingface_hub.login(token="${{ secrets.HF_TOKEN }}")'
-      #     gradio deploy --title "my-ml-model" --app-file app.py
+      # Get commit ID for reference in subsequent jobs
+      - name: Get Commit ID
+        id: get_commit_id_ec2
+        run: |
+          echo "commit_id=${{ needs.launch-runner.outputs.commit_id }}" >> $GITHUB_OUTPUT
+
+  #----------------------------------------
+  # JOB 4: Stop EC2 runner after completion
+  #----------------------------------------
   stop-runner:
     name: Stop self-hosted EC2 runner
     needs:
-      - launch-runner # required to get output from the start-runner job
-      - do-the-job # required to wait when the main job is done
+      - launch-runner
+      - do-the-job
     runs-on: ubuntu-latest
-    if: ${{ always() }} # required to stop the runner even if the error happened in the previous jobs
+    if: ${{ always() }}
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -405,6 +283,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+          
       - name: Stop EC2 runner
         uses: machulav/ec2-github-runner@v2.3.9
         with:
@@ -412,6 +291,7 @@ jobs:
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           label: ${{ needs.launch-runner.outputs.label }}
           ec2-instance-id: ${{ needs.launch-runner.outputs.ec2-instance-id }}
+          
       - name: Debug Region
         run: |
           echo "Region is: '${AWS_REGION}'"
