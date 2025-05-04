@@ -1,4 +1,4 @@
-name: trail 4 pipeline
+name: trail 5 pipeline
 
 # When to run this workflow
 on:
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       commit_id: ${{ steps.get_commit_id.outputs.commit_id }}
-      ecr_repository_uri: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+      ecr_image: ${{ steps.build-image.outputs.image }}
 
     steps:
       - name: Checkout Code
@@ -195,17 +195,34 @@ jobs:
       
       - name: Pull Docker Image and Run Training
         env:
-          ECR_REGISTRY: ${{ needs.build-and-push-ecr-image.outputs.ecr_repository_uri }}
-          IMAGE_TAG: latest
+          ECR_IMAGE: ${{ needs.build-and-push-ecr-image.outputs.ecr_image }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           REPO_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           DOCKER_AUTH_CONFIG: ${{ secrets.DOCKER_AUTH_CONFIG }}
         run: |
+          # Debug the Docker image reference
+          echo "🔍 Checking ECR image reference value:"
+          echo "ECR_IMAGE=${ECR_IMAGE}"
+          
+          # Fallback to constructing the URI if the output is empty
+          if [ -z "${ECR_IMAGE}" ]; then
+            echo "⚠️ ECR_IMAGE is empty, trying to construct it manually..."
+            ECR_URI=$(aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
+            
+            if [ -n "${ECR_URI}" ]; then
+              echo "✅ Successfully constructed ECR URI: ${ECR_URI}"
+              ECR_IMAGE="${ECR_URI}:latest"
+            else
+              echo "❌ Failed to construct ECR URI"
+              exit 1
+            fi
+          fi
+          
           # Try to pull the Docker image with detailed error capturing
-          echo "🔄 Attempting to pull image from ${ECR_REGISTRY}:${IMAGE_TAG}"
-          docker pull ${ECR_REGISTRY}:${IMAGE_TAG}
+          echo "🔄 Attempting to pull image: ${ECR_IMAGE}"
+          docker pull ${ECR_IMAGE}
           
           # Check if image pull was successful
           if [ $? -ne 0 ]; then
@@ -219,13 +236,15 @@ jobs:
             echo "🔍 Testing if we can pull a public image:"
             docker pull hello-world && echo "✅ Public image pull successful" || echo "❌ Even public image pull failed"
             
-            # Try manual ECR login and show detailed output
-            echo "🔍 Trying manual ECR login:"
-            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY%/*} || echo "❌ Manual ECR login failed"
+            # Try to get ECR token and login manually
+            echo "🔍 Trying manual ECR login with explicit domain:"
+            ECR_DOMAIN=$(echo ${ECR_IMAGE} | cut -d/ -f1)
+            echo "ECR Domain: ${ECR_DOMAIN}"
+            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_DOMAIN} || echo "❌ Manual ECR login failed"
             
             # Try pull again with more verbose output
             echo "🔍 Retrying pull with more verbose output:"
-            docker pull --verbose ${ECR_REGISTRY}:${IMAGE_TAG} || true
+            docker pull --verbose ${ECR_IMAGE} || true
             
             # List all Docker images to verify state
             echo "🔍 Current Docker images:"
@@ -235,7 +254,7 @@ jobs:
             exit 1
           else
             echo "✅ Docker image pulled successfully!"
-            docker images | grep $(echo ${ECR_REGISTRY} | awk -F/ '{print $NF}')
+            docker images
           fi
           
           # Verify system setup
@@ -258,7 +277,7 @@ jobs:
             -e AWS_REGION=${AWS_REGION} \
             -e REPO_TOKEN=${REPO_TOKEN} \
             -e DOCKER_AUTH_CONFIG=${DOCKER_AUTH_CONFIG} \
-            ${ECR_REGISTRY}:${IMAGE_TAG} /bin/bash -c '
+            ${ECR_IMAGE} /bin/bash -c '
               # Install necessary packages
               apt update && apt install -y curl wget git unzip zip tar lsb-release jq
               
@@ -377,7 +396,7 @@ jobs:
           label: ${{ needs.launch-runner.outputs.label }}
           ec2-instance-id: ${{ needs.launch-runner.outputs.ec2-instance-id }}
           
-      # - name: Debug Region
-      #   run: |
-      #     echo "Region is: '${AWS_REGION}'"
-      #     echo "Length: ${#AWS_REGION}"
+      - name: Debug Region
+        run: |
+          echo "Region is: '${AWS_REGION}'"
+          echo "Length: ${#AWS_REGION}"
