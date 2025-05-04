@@ -1,4 +1,4 @@
-name: trail 6 pipeline
+name: trail 7 pipeline
 
 # When to run this workflow
 on:
@@ -209,6 +209,10 @@ jobs:
           echo "🔍 Checking ECR image reference value:"
           echo "ECR_IMAGE=${ECR_IMAGE}"
           
+          # Ensure fresh ECR login before pulling
+          echo "🔑 Refreshing ECR authentication..."
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin $(aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text | cut -d'/' -f1)
+          
           # Fallback to constructing the URI if the output is empty
           if [ -z "${ECR_IMAGE}" ]; then
             echo "⚠️ ECR_IMAGE is empty, trying to construct it manually..."
@@ -223,7 +227,7 @@ jobs:
             fi
           fi
           
-          # Try to pull the Docker image with detailed error capturing
+          # Try to pull the Docker image
           echo "🔄 Attempting to pull image: ${ECR_IMAGE}"
           docker pull ${ECR_IMAGE}
           
@@ -398,9 +402,7 @@ jobs:
           label: ${{ needs.launch-runner.outputs.label }}
           ec2-instance-id: ${{ needs.launch-runner.outputs.ec2-instance-id }}
           
-      # - name: Debug Region
-      #   run: |
-      #     echo "Region is: '${AWS_REGION}'"
-      #     echo "Length: ${#AWS_REGION}"
-
-
+      - name: Debug Region
+        run: |
+          echo "Region is: '${AWS_REGION}'"
+          echo "Length: ${#AWS_REGION}"
