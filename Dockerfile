@@ -33,7 +33,7 @@ WORKDIR /mlops
 COPY . .
 
 # Install Python dependencies from pyproject.toml
-RUN uv pip install .
+RUN uv pip install --system .
 
 #===========================
 
