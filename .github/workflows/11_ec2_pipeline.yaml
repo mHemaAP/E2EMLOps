@@ -302,9 +302,16 @@ jobs:
               git add .
               git commit -m "Initial commit for DVC" --allow-empty
               
-              # Initialize DVC with no SCM check
+              # Handle DVC initialization
+              echo "🔄 Setting up DVC..."
+              if [ -d ".dvc" ]; then
+                echo "DVC already initialized, removing existing config..."
+                rm -rf .dvc
+              fi
+              
+              # Initialize DVC with force flag
               echo "🔄 Initializing DVC..."
-              dvc init --no-scm
+              dvc init --no-scm -f
               
               # Configure DVC remote
               echo "🔄 Configuring DVC remote..."
@@ -315,11 +322,13 @@ jobs:
               
               # Pull data from DVC remote
               echo "📥 Pulling data from S3..."
-              dvc pull -r myremote
+              dvc pull -r myremote -f || {
+                echo "⚠️ Warning: DVC pull failed, but continuing with training..."
+              }
               
               # List contents to verify
               echo "📂 Workspace contents:"
-              ls -la
+              ls -la /mlops/data/processed/
               
               # Display Makefile to verify it exists and content
               echo "📋 Makefile content:"
