@@ -1,0 +1,426 @@
+name: trail 11 pipeline
+
+# When to run this workflow
+on:
+  workflow_dispatch:  # Manual trigger from GitHub UI
+  # Uncomment to enable automatic triggers
+  # push:
+  #   branches: [ main ]
+  # pull_request:
+  #   branches: [ main ]
+
+# Environment variables used across jobs
+env:
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  S3_BUCKET: ${{ secrets.S3_BUCKET_NAME }}
+
+jobs:
+  #----------------------------------------
+  # JOB 1: Build and push Docker image to ECR
+  #----------------------------------------
+  build-and-push-ecr-image:
+    name: 📦 Build and Push Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      commit_id: ${{ steps.get_commit_id.outputs.commit_id }}
+      ecr_image: ${{ steps.build-image.outputs.image }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq unzip
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'false'
+
+      - name: Get Latest Commit ID
+        id: get_commit_id
+        run: |
+          latest_commit=$(git rev-parse HEAD)
+          echo "commit_id=$latest_commit" >> $GITHUB_OUTPUT
+      
+      - name: Display the commit ID        
+        run: |
+          echo "Latest commit ID is: ${{ steps.get_commit_id.outputs.commit_id }}"
+      
+      - name: Build and Push Docker Image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+        run: |
+          # Build development container image and push to ECR
+          echo "Building and pushing image to $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker build -t Dockerfile  $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+
+
+  #----------------------------------------
+  # JOB 2: Launch EC2 instance with GPU for training
+  #----------------------------------------
+  launch-runner:
+    name: 🚀 Launch EC2 GPU Runner
+    runs-on: ubuntu-latest
+    needs: build-and-push-ecr-image
+    outputs:
+      label: ${{ steps.start-ec2-runner.outputs.label }}
+      ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
+      commit_id: ${{ steps.get_commit_id_runner.outputs.commit_id }}
+      
+    env:
+      TF_LOG: DEBUG
+      CML_VERBOSE: true 
+      
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Display the commit ID
+        run: |
+          echo "Latest commit ID is: ${{ needs.build-and-push-ecr-image.outputs.commit_id }}"
+
+      - name: Get latest commit ID
+        id: get_commit_id_runner
+        run: |
+          echo "commit_id=${{ needs.build-and-push-ecr-image.outputs.commit_id }}" >> $GITHUB_OUTPUT
+      
+      - name: Start EC2 runner
+        id: start-ec2-runner
+        uses: machulav/ec2-github-runner@v2.3.9
+        with:
+          mode: start
+          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          # AMI with CUDA/GPU drivers
+          ec2-image-id: ami-01654480b8a1994bd
+          ec2-instance-type: g4dn.xlarge
+          subnet-id: ${{ secrets.AWS_SUBNET_ID_1 }}
+          security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID }}
+          market-type: "spot"
+
+  #----------------------------------------
+  # JOB 3: Train model and deploy
+  #----------------------------------------
+  do-the-job:
+    name: Train Models and Deploy
+    needs: [launch-runner, build-and-push-ecr-image]
+    runs-on: ${{ needs.launch-runner.outputs.label }}
+    outputs:
+      commit_id: ${{ steps.get_commit_id_ec2.outputs.commit_id }}
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Setup Docker Auth Configuration
+        run: |
+          if [ ! -z "$DOCKER_AUTH_CONFIG" ]; then
+            echo "Setting up Docker authentication configuration..."
+            mkdir -p ~/.docker
+            echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
+            chmod 600 ~/.docker/config.json
+            echo "✅ Docker auth config created at ~/.docker/config.json"
+          else
+            echo "⚠️ DOCKER_AUTH_CONFIG secret is empty or not set"
+          fi
+        env:
+          DOCKER_AUTH_CONFIG: ${{ secrets.DOCKER_AUTH_CONFIG }}
+      
+      - name: Debug Docker and Authentication Setup
+        run: |
+          echo "🔍 Debugging Docker configuration..."
+          # Check Docker version and info
+          docker version
+          docker info
+          
+          # Check if .docker/config.json exists and has content (without showing sensitive data)
+          if [ -f ~/.docker/config.json ]; then
+            echo "✅ ~/.docker/config.json exists"
+            echo "File size: $(stat -c%s ~/.docker/config.json) bytes"
+            # Show structure without revealing secrets
+            cat ~/.docker/config.json | grep -o '"auths": {[^}]*}' | sed 's/"auth":"[^"]*"/"auth":"[REDACTED]"/g' || echo "No auths section found"
+          else
+            echo "❌ ~/.docker/config.json does not exist"
+          fi
+          
+          # Check AWS CLI configuration
+          echo "🔍 Checking AWS configuration..."
+          aws configure list
+          aws ecr get-login-password --region ${AWS_REGION} | echo "ECR password retrieved: $(if [ $? -eq 0 ]; then echo '✅'; else echo '❌'; fi)"
+          
+          # Test ECR connectivity
+          echo "🔍 Testing ECR connectivity..."
+          aws ecr describe-repositories --repository-names ${ECR_REPOSITORY} --region ${AWS_REGION} || echo "❌ Could not access ECR repository, check permissions"
+          
+          # List ECR images to verify access
+          echo "🔍 Listing images in ECR repository..."
+          aws ecr list-images --repository-name ${ECR_REPOSITORY} --region ${AWS_REGION} || echo "❌ Could not list images in repository"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+      
+      - name: Pull Docker Image and Run Training
+        env:
+          ECR_IMAGE: ${{ needs.build-and-push-ecr-image.outputs.ecr_image }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          REPO_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          DOCKER_AUTH_CONFIG: ${{ secrets.DOCKER_AUTH_CONFIG }}
+        run: |
+          # Debug the Docker image reference
+          echo "🔍 Checking ECR image reference value:"
+          echo "ECR_IMAGE=${ECR_IMAGE}"
+          
+          # Ensure fresh ECR login before pulling
+          echo "🔑 Refreshing ECR authentication..."
+          aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin $(aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text | cut -d'/' -f1)
+          
+          # Fallback to constructing the URI if the output is empty
+          if [ -z "${ECR_IMAGE}" ]; then
+            echo "⚠️ ECR_IMAGE is empty, trying to construct it manually..."
+            ECR_URI=$(aws ecr describe-repositories --repository-names ${{ env.ECR_REPOSITORY }} --query 'repositories[0].repositoryUri' --output text)
+            
+            if [ -n "${ECR_URI}" ]; then
+              echo "✅ Successfully constructed ECR URI: ${ECR_URI}"
+              ECR_IMAGE="${ECR_URI}:latest"
+            else
+              echo "❌ Failed to construct ECR URI"
+              exit 1
+            fi
+          fi
+          
+          # Try to pull the Docker image
+          echo "🔄 Attempting to pull image: ${ECR_IMAGE}"
+          docker pull ${ECR_IMAGE}
+          
+          # Check if image pull was successful
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to pull Docker image. Running diagnostic commands..."
+            
+            # Check Docker daemon status
+            echo "🔍 Docker daemon status:"
+            systemctl status docker || true
+            
+            # Check if we can pull a public image as a test
+            echo "🔍 Testing if we can pull a public image:"
+            docker pull hello-world && echo "✅ Public image pull successful" || echo "❌ Even public image pull failed"
+            
+            # Try to get ECR token and login manually
+            echo "🔍 Trying manual ECR login with explicit domain:"
+            ECR_DOMAIN=$(echo ${ECR_IMAGE} | cut -d/ -f1)
+            echo "ECR Domain: ${ECR_DOMAIN}"
+            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_DOMAIN} || echo "❌ Manual ECR login failed"
+            
+            # Try pull again with more verbose output
+            echo "🔍 Retrying pull with more verbose output:"
+            docker pull --verbose ${ECR_IMAGE} || true
+            
+            # List all Docker images to verify state
+            echo "🔍 Current Docker images:"
+            docker images
+            
+            echo "⚠️ Image pull failed. Please check error messages above."
+            exit 1
+          else
+            echo "✅ Docker image pulled successfully!"
+            docker images
+          fi
+          
+          # Verify system setup
+          echo "🖥️ System Information:"
+          lscpu
+          free -h
+          df -h
+          nvidia-smi  # Show GPU details
+          
+          # Create workspace directory and set up the project correctly
+          echo "📂 Setting up workspace..."
+          mkdir -p workspace/model_storage
+          
+          # Run training in Docker container with GPU access
+          # FIX: Mount the current directory to /mlops inside the container
+          # since the Dockerfile.devcontainer uses /mlops as the WORKDIR
+          docker run --gpus all \
+            -v $(pwd):/mlops \
+            -w /mlops \
+            -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+            -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+            -e AWS_REGION=${AWS_REGION} \
+            -e REPO_TOKEN=${REPO_TOKEN} \
+            -e S3_BUCKET=${S3_BUCKET} \
+            ${ECR_IMAGE} /bin/bash -c '
+              # Install necessary packages
+              apt update && apt install -y curl wget git unzip zip tar lsb-release jq
+              
+              # Display environment info
+              echo "🌐 Environment Information:"
+              lsb_release -a
+              python --version
+              nvidia-smi
+              
+              # Initialize git repository
+              echo "🔄 Initializing Git repository..."
+              git init
+              git add .
+              git commit -m "Initial commit for DVC" --allow-empty
+              
+              # Initialize DVC with no SCM check
+              echo "🔄 Initializing DVC..."
+              dvc init --no-scm
+              
+              # Configure DVC remote
+              echo "🔄 Configuring DVC remote..."
+              dvc remote add -d myremote s3://${S3_BUCKET}/dvc
+              dvc remote modify myremote access_key_id ${AWS_ACCESS_KEY_ID}
+              dvc remote modify myremote secret_access_key ${AWS_SECRET_ACCESS_KEY}
+              dvc remote modify myremote region ${AWS_REGION}
+              
+              # Pull data from DVC remote
+              echo "📥 Pulling data from S3..."
+              dvc pull -r myremote
+              
+              # List contents to verify
+              echo "📂 Workspace contents:"
+              ls -la
+              
+              # Display Makefile to verify it exists and content
+              echo "📋 Makefile content:"
+              cat Makefile
+              
+              # Train Sports Model
+              echo "🏀 Training Sports Model..."
+              make tsports
+              
+              # Evaluate model
+              echo "📊 Evaluating Sports Model..."
+              make esports
+              
+              # Save model path
+              find /mlops -name "sports*.pt" | head -1 > /mlops/model_storage/sports_model_checkpoint.txt
+              
+              # Train Vegetables & Fruits Model
+              echo "🥕 Training Vegetables & Fruits Model..."
+              make tvegfruits
+              
+              # Evaluate model
+              echo "📊 Evaluating Vegetables & Fruits Model..."
+              make evegfruits
+              
+              # Save model path
+              find /mlops -name "vegfruits*.pt" | head -1 > /mlops/model_storage/vegfruits_model_checkpoint.txt
+            '
+      
+      - name: Upload Model Checkpoints to S3
+        env:
+          BUCKET: ${{ secrets.S3_BUCKET_NAME }}
+          PREFIX: ${{ secrets.S3_PREFIX }}
+          COMMIT_ID: ${{ needs.launch-runner.outputs.commit_id }}
+        run: |
+          echo "Checking for model checkpoints..."
+          ls -la model_storage || true
+          
+          # Upload Sports model
+          if [ -f "model_storage/sports_model_checkpoint.txt" ]; then
+            sports_checkpoint=$(head -n 1 model_storage/sports_model_checkpoint.txt)
+            
+            if [ -f "$sports_checkpoint" ]; then
+              s3_key_sports="${PREFIX}/${COMMIT_ID}/sports/$(basename "$sports_checkpoint")"
+              echo "📤 Uploading Sports model to s3://${BUCKET}/${s3_key_sports}"
+              aws s3 cp "$sports_checkpoint" "s3://${BUCKET}/${s3_key_sports}"
+              echo "✅ Sports model successfully uploaded to S3"
+            else
+              echo "⚠️ Sports checkpoint file not found at $sports_checkpoint"
+            fi
+          else
+            echo "⚠️ No Sports model checkpoint path found"
+          fi
+          
+          # Upload Vegetables & Fruits model
+          if [ -f "model_storage/vegfruits_model_checkpoint.txt" ]; then
+            vegfruits_checkpoint=$(head -n 1 model_storage/vegfruits_model_checkpoint.txt)
+            
+            if [ -f "$vegfruits_checkpoint" ]; then
+              s3_key_vegfruits="${PREFIX}/${COMMIT_ID}/vegfruits/$(basename "$vegfruits_checkpoint")"
+              echo "📤 Uploading Vegetables & Fruits model to s3://${BUCKET}/${s3_key_vegfruits}"
+              aws s3 cp "$vegfruits_checkpoint" "s3://${BUCKET}/${s3_key_vegfruits}"
+              echo "✅ Vegetables & Fruits model successfully uploaded to S3"
+            else
+              echo "⚠️ Veg & Fruits checkpoint file not found at $vegfruits_checkpoint"
+            fi
+          else
+            echo "⚠️ No Vegetables & Fruits model checkpoint path found" 
+          fi
+      
+      - name: Get Commit ID
+        id: get_commit_id_ec2
+        run: |
+          echo "commit_id=${{ needs.launch-runner.outputs.commit_id }}" >> $GITHUB_OUTPUT
+
+  #----------------------------------------
+  # JOB 4: Stop EC2 runner after completion
+  #----------------------------------------
+  stop-runner:
+    name: Stop self-hosted EC2 runner
+    needs:
+      - launch-runner
+      - do-the-job
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          
+      - name: Stop EC2 runner
+        uses: machulav/ec2-github-runner@v2.3.9
+        with:
+          mode: stop
+          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          label: ${{ needs.launch-runner.outputs.label }}
+          ec2-instance-id: ${{ needs.launch-runner.outputs.ec2-instance-id }}
+          
+      # - name: Debug Region
+      #   run: |
+      #     echo "Region is: '${AWS_REGION}'"
+      #     echo "Length: ${#AWS_REGION}"
