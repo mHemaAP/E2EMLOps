@@ -1,4 +1,4 @@
-name: trail 5 pipeline
+name: trail 6 pipeline
 
 # When to run this workflow
 on:
@@ -132,6 +132,8 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          path: repo
       
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
