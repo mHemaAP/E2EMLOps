@@ -24,7 +24,11 @@ ENV PATH="/root/.local/bin/:$PATH"
 
 WORKDIR /mlops
 
-COPY pyproject.toml .
+#COPY pyproject.toml . 
+
+# Copy the entire project for the Docker build
+# This ensures all project files are available in the container
+COPY . .
 
 RUN uv sync --group develop --group visuals --group testing --group prod --extra cpu --no-cache
 
