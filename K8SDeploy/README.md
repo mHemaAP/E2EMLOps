@@ -48,7 +48,7 @@ Go into `src/eks-cluster-config` folder. It takes 7-15 minutes based on number o
 eksctl create cluster -f eks-cluster.yaml
 ```
 
-```
+``` 
 <debug-facts>
 # only usefull during debugging
 
