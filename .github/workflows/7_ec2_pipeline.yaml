@@ -1,4 +1,4 @@
-name: trail 7 pipeline
+name: trail 6 pipeline
 
 # When to run this workflow
 on:
@@ -271,8 +271,10 @@ jobs:
           df -h
           nvidia-smi  # Show GPU details
           
-          # Create workspace directory
+          # Create workspace directory and copy repo contents
+          echo "📂 Setting up workspace..."
           mkdir -p workspace
+          cp -r repo/* workspace/
           cd workspace
           
           # Run training in Docker container with GPU access
@@ -284,27 +286,44 @@ jobs:
             -e AWS_REGION=${AWS_REGION} \
             -e REPO_TOKEN=${REPO_TOKEN} \
             -e DOCKER_AUTH_CONFIG=${DOCKER_AUTH_CONFIG} \
+            -e S3_BUCKET=${S3_BUCKET} \
             ${ECR_IMAGE} /bin/bash -c '
               # Install necessary packages
               apt update && apt install -y curl wget git unzip zip tar lsb-release jq
-              
+
               # Display environment info
               echo "🌐 Environment Information:"
               lsb_release -a
               python --version
               nvidia-smi
               
+              # Initialize git repository
+              echo "🔄 Initializing Git repository..."
+              git init
+              git add .
+              git commit -m "Initial commit for DVC" --allow-empty
+              
               # Setup training environment
               mkdir -p model_storage
               
-              # Initialize DVC
+              # Initialize DVC with no SCM check
               echo "🔄 Initializing DVC..."
-              dvc init
+              dvc init --no-scm
+              
+              # Configure DVC remote
+              echo "🔄 Configuring DVC remote..."
               dvc remote add -d myremote s3://${S3_BUCKET}/dvc
+              dvc remote modify myremote access_key_id ${AWS_ACCESS_KEY_ID}
+              dvc remote modify myremote secret_access_key ${AWS_SECRET_ACCESS_KEY}
+              dvc remote modify myremote region ${AWS_REGION}
               
               # Pull data from DVC remote
               echo "📥 Pulling data from S3..."
               dvc pull -r myremote
+              
+              # List contents to verify
+              echo "📂 Workspace contents:"
+              ls -la
               
               # Train Sports Model
               echo "🏀 Training Sports Model..."
