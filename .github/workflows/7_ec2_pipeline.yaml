@@ -1,4 +1,4 @@
-name: trail 7 pipeline
+name: trail 6 pipeline
 
 # When to run this workflow
 on:
@@ -398,7 +398,9 @@ jobs:
           label: ${{ needs.launch-runner.outputs.label }}
           ec2-instance-id: ${{ needs.launch-runner.outputs.ec2-instance-id }}
           
-      - name: Debug Region
-        run: |
-          echo "Region is: '${AWS_REGION}'"
-          echo "Length: ${#AWS_REGION}"
+      # - name: Debug Region
+      #   run: |
+      #     echo "Region is: '${AWS_REGION}'"
+      #     echo "Length: ${#AWS_REGION}"
+
+
