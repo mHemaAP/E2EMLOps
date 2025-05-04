@@ -32,8 +32,8 @@ WORKDIR /mlops
 
 COPY . .
 
-RUN pip install uv
-RUN uv pip install -r pyproject.toml
+# Install Python dependencies from pyproject.toml
+RUN uv pip install .
 
 #===========================
 
