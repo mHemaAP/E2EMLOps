@@ -13,6 +13,7 @@ on:
 env:
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
   AWS_REGION: ${{ secrets.AWS_REGION }}
+  S3_BUCKET: ${{ secrets.S3_BUCKET_NAME }}
 
 jobs:
   #----------------------------------------
@@ -127,7 +128,7 @@ jobs:
     runs-on: ${{ needs.launch-runner.outputs.label }}
     outputs:
       commit_id: ${{ steps.get_commit_id_ec2.outputs.commit_id }}
-    timeout-minutes: 30  # Increased timeout for training
+    timeout-minutes: 20
     
     steps:
       - name: Checkout Code
@@ -160,50 +161,40 @@ jobs:
         env:
           DOCKER_AUTH_CONFIG: ${{ secrets.DOCKER_AUTH_CONFIG }}
       
-      - name: Setup Workspace and Create Makefile
+      - name: Debug Docker and Authentication Setup
         run: |
-          # Create workspace directory
-          mkdir -p workspace
+          echo "🔍 Debugging Docker configuration..."
+          # Check Docker version and info
+          docker version
+          docker info
           
-          # Create a Makefile with the required targets
-          cat > workspace/Makefile << 'EOF'
-          .PHONY: tsports esports tvegfruits evegfruits
-
-          # Training targets
-          tsports:
-            @echo "Training sports model..."
-            python -c "print('Sports model training complete')" > sports_model_output.txt
-            # Mock model creation for testing
-            echo "model data" > sports_model_v1.pt
-
-          esports:
-            @echo "Evaluating sports model..."
-            python -c "print('Sports model evaluation: 85% accuracy')" >> sports_model_output.txt
-
-          tvegfruits:
-            @echo "Training vegetables and fruits model..."
-            python -c "print('Vegetables and fruits model training complete')" > vegfruits_model_output.txt
-            # Mock model creation for testing
-            echo "model data" > vegfruits_model_v1.pt
-
-          evegfruits:
-            @echo "Evaluating vegetables and fruits model..."
-            python -c "print('Vegetables and fruits model evaluation: 90% accuracy')" >> vegfruits_model_output.txt
-          EOF
-          
-          # Copy repository content to workspace for DVC access
-          cp -r repo/. workspace/
-          
-          # Initialize DVC if not already initialized
-          cd workspace
-          if [ ! -d ".dvc" ]; then
-            echo "Initializing DVC repository..."
-            dvc init
-            git config --global user.email "github-actions@github.com"
-            git config --global user.name "GitHub Actions"
-            git add .dvc
-            git commit -m "Initialize DVC repository"
+          # Check if .docker/config.json exists and has content (without showing sensitive data)
+          if [ -f ~/.docker/config.json ]; then
+            echo "✅ ~/.docker/config.json exists"
+            echo "File size: $(stat -c%s ~/.docker/config.json) bytes"
+            # Show structure without revealing secrets
+            cat ~/.docker/config.json | grep -o '"auths": {[^}]*}' | sed 's/"auth":"[^"]*"/"auth":"[REDACTED]"/g' || echo "No auths section found"
+          else
+            echo "❌ ~/.docker/config.json does not exist"
           fi
+          
+          # Check AWS CLI configuration
+          echo "🔍 Checking AWS configuration..."
+          aws configure list
+          aws ecr get-login-password --region ${AWS_REGION} | echo "ECR password retrieved: $(if [ $? -eq 0 ]; then echo '✅'; else echo '❌'; fi)"
+          
+          # Test ECR connectivity
+          echo "🔍 Testing ECR connectivity..."
+          aws ecr describe-repositories --repository-names ${ECR_REPOSITORY} --region ${AWS_REGION} || echo "❌ Could not access ECR repository, check permissions"
+          
+          # List ECR images to verify access
+          echo "🔍 Listing images in ECR repository..."
+          aws ecr list-images --repository-name ${ECR_REPOSITORY} --region ${AWS_REGION} || echo "❌ Could not list images in repository"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
       
       - name: Pull Docker Image and Run Training
         env:
@@ -213,7 +204,6 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           REPO_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           DOCKER_AUTH_CONFIG: ${{ secrets.DOCKER_AUTH_CONFIG }}
-          DVC_REMOTE: ${{ secrets.DVC_REMOTE_URL }}
         run: |
           # Debug the Docker image reference
           echo "🔍 Checking ECR image reference value:"
@@ -233,13 +223,21 @@ jobs:
             fi
           fi
           
-          # Try to pull the Docker image
+          # Try to pull the Docker image with detailed error capturing
           echo "🔄 Attempting to pull image: ${ECR_IMAGE}"
           docker pull ${ECR_IMAGE}
           
           # Check if image pull was successful
           if [ $? -ne 0 ]; then
             echo "❌ Failed to pull Docker image. Running diagnostic commands..."
+            
+            # Check Docker daemon status
+            echo "🔍 Docker daemon status:"
+            systemctl status docker || true
+            
+            # Check if we can pull a public image as a test
+            echo "🔍 Testing if we can pull a public image:"
+            docker pull hello-world && echo "✅ Public image pull successful" || echo "❌ Even public image pull failed"
             
             # Try to get ECR token and login manually
             echo "🔍 Trying manual ECR login with explicit domain:"
@@ -251,6 +249,10 @@ jobs:
             echo "🔍 Retrying pull with more verbose output:"
             docker pull --verbose ${ECR_IMAGE} || true
             
+            # List all Docker images to verify state
+            echo "🔍 Current Docker images:"
+            docker images
+            
             echo "⚠️ Image pull failed. Please check error messages above."
             exit 1
           else
@@ -258,17 +260,26 @@ jobs:
             docker images
           fi
           
-          # Create model storage directory
-          mkdir -p workspace/model_storage
+          # Verify system setup
+          echo "🖥️ System Information:"
+          lscpu
+          free -h
+          df -h
+          nvidia-smi  # Show GPU details
+          
+          # Create workspace directory
+          mkdir -p workspace
+          cd workspace
           
           # Run training in Docker container with GPU access
           docker run --gpus all \
-            -v $(pwd)/workspace:/workspace \
+            -v $(pwd)/repo:/workspace \
             -w /workspace \
             -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
             -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
             -e AWS_REGION=${AWS_REGION} \
             -e REPO_TOKEN=${REPO_TOKEN} \
+            -e DOCKER_AUTH_CONFIG=${DOCKER_AUTH_CONFIG} \
             ${ECR_IMAGE} /bin/bash -c '
               # Install necessary packages
               apt update && apt install -y curl wget git unzip zip tar lsb-release jq
@@ -279,35 +290,17 @@ jobs:
               python --version
               nvidia-smi
               
-              # Check for DVC and install if needed
-              if ! command -v dvc &> /dev/null; then
-                echo "📥 Installing DVC with S3 support..."
-                pip install "dvc[s3]"
-              fi
-              
-              # Make sure we are in a git repository for DVC
-              if [ ! -d ".git" ]; then
-                echo "⚠️ No git repository found. Initializing git repository..."
-                git init
-                git config --global user.email "github-actions@github.com"
-                git config --global user.name "GitHub Actions"
-                git add .
-                git commit -m "Initial commit"
-              fi
-              
-              # Configure DVC remote if provided
-              if [ ! -z "$DVC_REMOTE" ]; then
-                echo "🔧 Configuring DVC remote..."
-                dvc remote add -f myremote $DVC_REMOTE
-                dvc remote modify myremote endpointurl https://s3.${AWS_REGION}.amazonaws.com
-              fi
-              
-              # Try to pull data from DVC remote
-              echo "📥 Pulling data from S3 with DVC..."
-              dvc pull -r myremote || echo "⚠️ DVC pull failed, continuing with workflow"
-              
-              # Make sure model_storage directory exists
+              # Setup training environment
               mkdir -p model_storage
+              
+              # Initialize DVC
+              echo "🔄 Initializing DVC..."
+              dvc init
+              dvc remote add -d myremote s3://${S3_BUCKET}/dvc
+              
+              # Pull data from DVC remote
+              echo "📥 Pulling data from S3..."
+              dvc pull -r myremote
               
               # Train Sports Model
               echo "🏀 Training Sports Model..."
@@ -331,8 +324,6 @@ jobs:
               # Save model path
               find /workspace -name "vegfruits*.pt" | head -1 > /workspace/model_storage/vegfruits_model_checkpoint.txt
             '
-        env:
-          DVC_REMOTE_URL: ${{ secrets.DVC_REMOTE_URL }}
       
       - name: Upload Model Checkpoints to S3
         env:
