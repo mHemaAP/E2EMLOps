@@ -1,0 +1,164 @@
+name: Model Training Job
+
+on:
+  workflow_call:
+    inputs:
+      ecr_image:
+        required: true
+        type: string
+      aws_access_key_id:
+        required: true
+        type: string
+      aws_secret_access_key:
+        required: true
+        type: string
+      aws_region:
+        required: true
+        type: string
+      repo_token:
+        required: true
+        type: string
+      docker_auth_config:
+        required: true
+        type: string
+      s3_bucket:
+        required: true
+        type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Pull Docker Image and Run Training
+      shell: bash
+      env:
+        # ECR_IMAGE: ${{ inputs.ecr_image }}
+        ECR_IMAGE: "390844750487.dkr.ecr.ap-south-1.amazonaws.com/abhiya-ecr-project:latest"
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_REGION: ${{ inputs.aws_region }}
+        REPO_TOKEN: ${{ inputs.repo_token }}
+        DOCKER_AUTH_CONFIG: ${{ inputs.docker_auth_config }}
+        S3_BUCKET: ${{ inputs.s3_bucket }}
+      run: |
+        # FIX: Mount the current directory to /mlops inside the container
+        # since the Dockerfile.devcontainer uses /mlops as the WORKDIR
+        docker run --gpus all \
+          -v $(pwd):/mlops \
+          -w /mlops \
+          -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+          -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+          -e AWS_REGION=${AWS_REGION} \
+          -e REPO_TOKEN=${REPO_TOKEN} \
+          -e S3_BUCKET=${S3_BUCKET} \
+          ${ECR_IMAGE} /bin/bash -c '
+            # Install necessary packages
+            apt update && apt install -y curl wget git unzip zip tar lsb-release jq
+            
+            # Display environment info
+            echo "🌐 Environment Information:"
+            lsb_release -a
+            python --version
+            nvidia-smi
+            
+            # Initialize git repository
+            echo "🔄 Initializing Git repository..."
+            git init
+            git add .
+            git commit -m "Initial commit for DVC" --allow-empty
+            
+            # Handle DVC initialization
+            echo "🔄 Setting up DVC..."
+            if [ -d ".dvc" ]; then
+              echo "DVC already initialized, removing existing config..."
+              rm -rf .dvc
+            fi
+            
+            # Initialize DVC with force flag
+            echo "🔄 Initializing DVC..."
+            dvc init --no-scm -f
+            
+            # Configure DVC remote
+            echo "🔄 Configuring DVC remote..."
+            dvc remote add -d myremote s3://${S3_BUCKET}/dvc
+            dvc remote modify myremote access_key_id ${AWS_ACCESS_KEY_ID}
+            dvc remote modify myremote secret_access_key ${AWS_SECRET_ACCESS_KEY}
+            dvc remote modify myremote region ${AWS_REGION}
+            
+            # Pull data from DVC remote
+            echo "📥 Pulling data from S3..."
+            dvc pull -r myremote -f || {
+              echo "⚠️ Warning: DVC pull failed, but continuing with training..."
+            }
+            
+            # List contents to verify
+            echo "📂 Workspace contents:"
+            ls -la /mlops/data/processed/
+            
+            # Display Makefile to verify it exists and content
+            echo "📋 Makefile content:"
+            cat Makefile
+            
+            # Train Sports Model
+            echo "🏀 Training Sports Model..."
+            make tsports
+            
+            # Evaluate model
+            echo "📊 Evaluating Sports Model..."
+            make esports
+            
+            # Save model path
+            find /mlops -name "sports*.pt" | head -1 > /mlops/model_storage/sports_model_checkpoint.txt
+            
+            # Train Vegetables & Fruits Model
+            echo "🥕 Training Vegetables & Fruits Model..."
+            make tvegfruits
+            
+            # Evaluate model
+            echo "📊 Evaluating Vegetables & Fruits Model..."
+            make evegfruits
+            
+            # Save model path
+            find /mlops -name "vegfruits*.pt" | head -1 > /mlops/model_storage/vegfruits_model_checkpoint.txt
+          '
+
+    - name: Upload Model Checkpoints to S3
+      shell: bash
+      env:
+        BUCKET: ${{ inputs.s3_bucket }}
+        PREFIX: models
+        COMMIT_ID: ${{ github.sha }}
+      run: |
+        echo "Checking for model checkpoints..."
+        ls -la model_storage || true
+        
+        # Upload Sports model
+        if [ -f "model_storage/sports_model_checkpoint.txt" ]; then
+          sports_checkpoint=$(head -n 1 model_storage/sports_model_checkpoint.txt)
+          
+          if [ -f "$sports_checkpoint" ]; then
+            s3_key_sports="${PREFIX}/${COMMIT_ID}/sports/$(basename "$sports_checkpoint")"
+            echo "📤 Uploading Sports model to s3://${BUCKET}/${s3_key_sports}"
+            aws s3 cp "$sports_checkpoint" "s3://${BUCKET}/${s3_key_sports}"
+            echo "✅ Sports model successfully uploaded to S3"
+          else
+            echo "⚠️ Sports checkpoint file not found at $sports_checkpoint"
+          fi
+        else
+          echo "⚠️ No Sports model checkpoint path found"
+        fi
+        
+        # Upload Vegetables & Fruits model
+        if [ -f "model_storage/vegfruits_model_checkpoint.txt" ]; then
+          vegfruits_checkpoint=$(head -n 1 model_storage/vegfruits_model_checkpoint.txt)
+          
+          if [ -f "$vegfruits_checkpoint" ]; then
+            s3_key_vegfruits="${PREFIX}/${COMMIT_ID}/vegfruits/$(basename "$vegfruits_checkpoint")"
+            echo "📤 Uploading Vegetables & Fruits model to s3://${BUCKET}/${s3_key_vegfruits}"
+            aws s3 cp "$vegfruits_checkpoint" "s3://${BUCKET}/${s3_key_vegfruits}"
+            echo "✅ Vegetables & Fruits model successfully uploaded to S3"
+          else
+            echo "⚠️ Veg & Fruits checkpoint file not found at $vegfruits_checkpoint"
+          fi
+        else
+          echo "⚠️ No Vegetables & Fruits model checkpoint path found" 
+        fi 
