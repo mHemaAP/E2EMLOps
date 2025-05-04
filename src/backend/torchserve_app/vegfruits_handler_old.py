@@ -8,7 +8,7 @@ import torchvision
 from PIL import Image
 from scipy.special import softmax
 from ts.torch_handler.base_handler import BaseHandler
-import base64
+
 
 class VegFruitsHandler(BaseHandler):
     def __init__(self):
@@ -60,7 +60,6 @@ class VegFruitsHandler(BaseHandler):
         # create a stream from the encoded image
 
         print(f"received request of type:: {type(image)}")
-        image = base64.b64decode(image)
         image = Image.open(io.BytesIO(image)).convert('RGB').resize(self.input_size) # isinstance(image, (bytes, bytearray))
 
         # preprocess
@@ -80,7 +79,7 @@ class VegFruitsHandler(BaseHandler):
                 list : The preprocess function returns a list of prompts.
         """
         images  = [ self.preprocess_one_image(req) for req in requests ]
-        images  = np.concatenate(images,axis=0)
+        images  = np.concat(images,axis=0)
         print(f"received images and preprocessed:: shape({ images.shape})")
         return images
 
@@ -108,10 +107,7 @@ class VegFruitsHandler(BaseHandler):
         response:list = []
         for cls0,prob in zip(
                                 np.argmax(probabilities,axis=1),
-                                np.max(probabilities,axis=1)
+                                np.max(probabilities,axis=1), strict=False
                         ):
-            response.append({
-                "class": self.mapping[cls0],
-                "probability": float(prob)
-            })
+            response.append({self.mapping[cls0]:float(prob)} )
         return response

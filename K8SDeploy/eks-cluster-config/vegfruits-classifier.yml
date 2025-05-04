@@ -1,7 +1,7 @@
 apiVersion: "serving.kserve.io/v1beta1"
 kind: "InferenceService"
 metadata:
-  name: "sports-classifier"
+  name: "vegfruits-classifier"
   annotations:
     serving.kserve.io/enable-metric-aggregation: "true"
     serving.kserve.io/enable-prometheus-scraping: "true"
@@ -15,7 +15,7 @@ spec:
     serviceAccountName: s3-read-only
     pytorch:
       protocolVersion: v1
-      storageUri: s3://mybucket-emlo-mumbai/kserve-ig/sports-classifier/
+      storageUri: s3://mybucket-emlo-mumbai/kserve-ig/vegfruits-classifier/
       # storageUri: s3://tsai-emlo/kserve-ig/fakeimagenet-vit/
       # image: pytorch/torchserve-kfs:0.12.0
       image: 306093656765.dkr.ecr.ap-south-1.amazonaws.com/model-onnx-server:latest

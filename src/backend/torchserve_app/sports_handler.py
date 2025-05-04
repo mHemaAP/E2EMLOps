@@ -8,7 +8,7 @@ import torchvision
 from PIL import Image
 from scipy.special import softmax
 from ts.torch_handler.base_handler import BaseHandler
-
+import base64
 
 class SportsHandler(BaseHandler):
     def __init__(self):
@@ -50,6 +50,7 @@ class SportsHandler(BaseHandler):
         with open(mapping_file_path) as mapping_file:
             self.mapping = list(json.load(mapping_file).values())
         # by default it'll look for `index_to_name.json`
+        print(f"mapping ::{self.mapping=}")
 
     def preprocess_one_image(self,req) -> np.ndarray:
         # get image from the request
@@ -58,6 +59,8 @@ class SportsHandler(BaseHandler):
             image = req.get("body")
         # create a stream from the encoded image
 
+        print(f"received request of type:: {type(image)}")
+        image = base64.b64decode(image)  # <-- this line is essential
         image = Image.open(io.BytesIO(image)).convert('RGB').resize(self.input_size) # isinstance(image, (bytes, bytearray))
 
         # preprocess
@@ -77,7 +80,8 @@ class SportsHandler(BaseHandler):
                 list : The preprocess function returns a list of prompts.
         """
         images  = [ self.preprocess_one_image(req) for req in requests ]
-        images  = np.concat(images,axis=0)
+        images  = np.concatenate(images,axis=0)
+        print(f"received images and preprocessed:: shape({ images.shape})")
         return images
 
     def inference(self, data):
@@ -103,9 +107,15 @@ class SportsHandler(BaseHandler):
         probabilities = softmax(inference_outputs,axis=1)
 
         response:list = []
+        # Using python=3.9 so no strict=False
         for cls0,prob in zip(
                                 np.argmax(probabilities,axis=1),
-                                np.max(probabilities,axis=1), strict=False
+                                np.max(probabilities,axis=1)
                         ):
-            response.append({self.mapping[cls0]:float(prob)} )
+            # response.append({self.mapping[cls0]:float(prob)} )
+            response.append({
+                "class": self.mapping[cls0],
+                "probability": float(prob)
+            })
+
         return response

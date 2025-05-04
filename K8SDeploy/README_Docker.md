@@ -43,3 +43,7 @@ aws iam get-policy-version --policy-arn arn:aws:iam::306093656765:policy/S3ListT
 eksctl create iamserviceaccount   --name s3-list-sa   --cluster basic-cluster   --attach-policy-arn arn:aws:iam::306093656765:policy/S3ListTestEMLO   --approve 	--region ap-south-1
 
  docker rmi -f  imageid
+
+### Build docker image for model-onnx-server
+
+- ```docker build -t model-onnx-server -f Dockerfile.model-onnx-server . --no-cache```

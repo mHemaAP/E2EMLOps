@@ -29,8 +29,8 @@ managedNodeGroups:
     - t3.xlarge
     - t3a.xlarge
     # desiredCapacity: 1
-    minSize: 3
-    maxSize: 5
+    minSize: 2 # 3
+    maxSize: 3 # 5
     spot: true
     labels:
       role: spot
