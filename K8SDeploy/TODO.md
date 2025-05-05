@@ -39,6 +39,8 @@ Pending works
     - K8SDeploy make sport-classifer to work with K8Serve -> Facing issue with K8Server + Torchserve + loading onnx model - Fixed - Done
     - Develop script to take onnx model -> generate .mar file -> move to s3 location - Done
     - Add prometheus, grafana dashboards and show K8SDeploy load testing
+        - Automate scale testing with GitHub cicd - do load testing -> GitHub actions - check how many request per second the backend is able to handle, how many total request sent- Show a graph and how much it can handle, do a comment with cml to commit. Scale with HPA and show scaling - [Performance metrics, including latency and stress test results.] 
+    - A comprehensive architecture diagram illustrating the entire pipeline and deployment process.
 4. Training Part
     - All done
 
