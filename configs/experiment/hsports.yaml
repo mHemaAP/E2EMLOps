@@ -80,3 +80,5 @@ hydra:
 logger:
   tensorboard:
     name: dim_${model.dims}-stem_${model.stem_type}-act_${model.act_layer}-pool_${model.global_pool}-dep_${model.depths}-kernel_${model.kernel_sizes}-posemb_${model.use_pos_emb}"
+
+name: sports

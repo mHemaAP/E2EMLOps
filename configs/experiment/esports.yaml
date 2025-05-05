@@ -24,3 +24,5 @@ test: True
 trainer:
   min_epochs: 1
   max_epochs: 10
+
+name: sports

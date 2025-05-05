@@ -66,3 +66,11 @@ torchserve --stop
 
 torch-model-archiver   --model-name sports-classifier     --version 1.0      --export-path ./checkpoints/model_stores/sports/mar_file  --handler  ./src/backend/torchserve_app/sports_handler.py      --serialized-file ./checkpoints/pths/sports_cpu.pt     --extra-files checkpoints/model_stores/sports/index_to_name.json
 
+
+
+
+torch-model-archiver --model-name sports-classifier --serialized-file checkpoints/onnxs/sports.onnx --handler src/backend/torchserve_app/sports_handler.py --export-path checkpoints/model_stores/sports/ -f --version 0.0.1 --extra-files checkpoints/model_stores/sports/index_to_name.json
+
+
+torch-model-archiver --model-name vegfruits-classifier --serialized-file checkpoints/onnxs/vegfruits.onnx --handler src/backend/torchserve_app/vegfruits_handler.py --export-path checkpoints/model_stores/vegfruits/ -f --version 0.0.1 --extra-files checkpoints/model_stores/vegfruits/index_to_name.json
+

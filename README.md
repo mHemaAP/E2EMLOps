@@ -219,4 +219,10 @@ There are two choosing buttons and each one redirects to different end points
 
 ### Torchserve - Preparation file
 
-torch-model-archiver   --model-name sports-classifier     --version 1.0      --export-path ./checkpoints/model_stores/sports/mar_file  --handler  ./src/backend/torchserve_app/sports_handler.py      --serialized-file ./checkpoints/pths/sports_cpu.pt     --extra-files checkpoints/model_stores/sports/index_to_name.json
+```
+    torch-model-archiver --model-name {project}-classifier
+    --serialized-file {deploy_dir}/{project}.onnx
+    --handler src/backend/torchserve_app/{project}_handler.py
+    --export-path {deploy_dir}/model-store/ -f --version 0.0.1
+    --extra-files {deploy_dir}/index_to_name.json
+```

@@ -74,3 +74,5 @@ hydra:
 logger:
   tensorboard:
     name: patch_size${model.patch_size}-embed_dim${model.embed_dim}"
+
+name: vegfruits
