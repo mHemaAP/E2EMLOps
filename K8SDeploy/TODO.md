@@ -36,10 +36,9 @@ Pending works
     - For argocd get the accesskey, secretkey and create a yaml file for this repo https://github.com/ajithvcoder/emlo4-session-18-ajithvcoder-canary-argocd-kserve
     - The model end point also should be changed in `model-server.cm.yml` file in this repo https://github.com/ajithvcoder/emlo4-session-18-ajithvcoder-canary-argocd-kserve . Use this command `kubectl get pods,svc -n istio-system`
 3. Kubernetes
-    - K8SDeploy make sport-classifer to work with K8Serve -> Facing issue with K8Server + Torchserve + loading onnx model - Fixed
-    - Add prometheus, grafana dashboards
-    - K8SDeploy load testing
-    - Develop script to take onnx model -> generate .mar file -> move to s3 location
+    - K8SDeploy make sport-classifer to work with K8Serve -> Facing issue with K8Server + Torchserve + loading onnx model - Fixed - Done
+    - Develop script to take onnx model -> generate .mar file -> move to s3 location - Done
+    - Add prometheus, grafana dashboards and show K8SDeploy load testing
 4. Training Part
     - All done
 

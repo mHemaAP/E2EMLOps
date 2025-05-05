@@ -211,6 +211,10 @@ Take the model and host it with fast api
 - `uv run python src/backend/fastapi_app/fapi_vegfruits.py` 
 - `uv run python src/backend/fastapi_app/fapi_sports.py` 
 
+Move files to s3
+
+- `python src/backend/torch_local/transfer_mar.py `
+
 **Next JS**
 There are two choosing buttons and each one redirects to different end points
 - End points can be changed in `src/frontend/ui/app/predict_app1` and `src/frontend/ui/app/predict_app2`
