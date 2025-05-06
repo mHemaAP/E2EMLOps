@@ -308,6 +308,16 @@ kubectl apply -f argo-apps
 
 Create the repo before you start and update the repo url in argo-apps/models.yaml file
 
+When everything is running and pods are up
+
+**Load testing**
+
+`python3 test_load_vegfruits_2.py --url "http://a250c292ee6114b8e9d6f23f6d8690bc-1957734331.ap-south-1.elb.amazonaws.com/v1/models/vegfruits-classifier:predict" --requests 10 --workers 2`
+
+UI URL will be available in loadbalancer in EC2 
+
+`http://k8s-default-uiserver-3620c3afba-764943795.ap-south-1.elb.amazonaws.com/`
+
 ```
 <debug>
 Delete argocd deployments
