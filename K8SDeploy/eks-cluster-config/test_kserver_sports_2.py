@@ -2,13 +2,14 @@
 import requests
 import json
 
-url_1 = "http://a8aa96e3f69824ea4b8edc06479f50ca-1028354565.ap-south-1.elb.amazonaws.com/v1/models/sports-classifier:predict"
+url_1 = "http://a250c292ee6114b8e9d6f23f6d8690bc-1957734331.ap-south-1.elb.amazonaws.com/v1/models/sports-classifier:predict"
 
 with open("input.json") as f:
     payload = json.load(f)
 
 
 headers_1 = {"Host": "sports-classifier.default.emlo.tsai", "Content-Type": "application/json"}
+
 
 response_1 = requests.request("POST", url_1, headers=headers_1, json=payload)
 

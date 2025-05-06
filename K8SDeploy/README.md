@@ -196,6 +196,55 @@ eksctl create iamserviceaccount \
 Verify
 - `kubectl get pods,svc -n istio-system`
 
+**Prometheus**
+
+```
+mkdir other-setup
+cd other-setup
+git clone --branch release-0.14 https://github.com/kserve/kserve.git
+cd kserve
+kubectl apply -k docs/samples/metrics-and-monitoring/prometheus-operator
+kubectl wait --for condition=established --timeout=120s crd/prometheuses.monitoring.coreos.com
+kubectl wait --for condition=established --timeout=120s crd/servicemonitors.monitoring.coreos.com
+kubectl apply -k docs/samples/metrics-and-monitoring/prometheus
+```
+
+```
+kubectl patch configmaps -n knative-serving config-deployment --patch-file qpext_image_patch.yaml
+```
+
+Set max nodes because if you give more request and max is not set it may scale more
+
+```
+eksctl scale nodegroup --cluster=basic-cluster --nodes=6 ng-spot-3 --nodes-max=6
+eksctl get nodegroup --cluster basic-cluster --region ap-south-1 --name ng-spot-3
+```
+
+```
+kubectl port-forward service/prometheus-operated -n kfserving-monitoring 9090:9090
+```
+
+**Grafana**
+
+```
+kubectl create namespace grafana
+
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm install grafana grafana/grafana --namespace grafana --version 8.8.4
+```
+
+```
+kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+kubectl port-forward svc/grafana 3000:80 -n grafana
+```
+
+Setup dashboard for grafana
+
+- Go to Connections-> Add data source -> Prometheus -> Add this prometheus url `http://prometheus-operated.kfserving-monitoring.svc.cluster.local:9090` -> save and test
+
+- Go to Dashboards -> New -> import -> download the json file from here `https://grafana.com/grafana/dashboards/18032-knative-serving-revision-http-requests/` -> upload the json to the specified place
+
 
 *For Helm Debugging commands refer emlo assignment 16
 

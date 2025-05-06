@@ -45,6 +45,30 @@ managedNodeGroups:
         externalDNS: true
         ebs: true
   # - name: ng-spot-2
+  #   instanceTypes:
+  #   - t2.xlarge
+  #   - t3.xlarge
+  #   - t3a.xlarge
+  #   # desiredCapacity: 1
+  #   minSize: 3 # 3
+  #   maxSize: 8  # 5
+  #   spot: true
+  #   labels:
+  #     role: spot
+  #   ssh:
+  #     allow: true
+  #   propagateASGTags: true
+  #   iam:
+  #     withAddonPolicies:
+  #       autoScaler: true
+  #       awsLoadBalancerController: true
+  #       certManager: true
+  #       externalDNS: true
+  #       ebs: true
+  # eksctl scale nodegroup --cluster=basic-cluster --nodes=6 ng-spot-3 --nodes-max=6
+  # eksctl delete nodegroup --cluster basic-cluster --name ng-spot-2
+  # eksctl create nodegroup --cluster basic-cluster --name ng-spot-2
+  # - name: ng-spot-2
   #   instanceType: t3a.medium
   #   desiredCapacity: 3
   #   ssh:
