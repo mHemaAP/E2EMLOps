@@ -6,6 +6,7 @@ from statistics import mean
 import argparse
 from typing import List, Dict
 import json
+import matplotlib.pyplot as plt
 
 def load_image() -> bytes:
     """Load the test image"""
@@ -35,6 +36,30 @@ def make_request(url: str) -> Dict:
         "response_time": end_time - start_time,
         "success": response_1.status_code == 200,
     }
+
+def plot_results(results: List[Dict], output_file: str = "response_times_sports.png") -> None:
+    """Plot and save response times from results"""
+    response_times = [
+        r["response_time"] for r in results if r["response_time"] is not None
+    ]
+    success_flags = [
+        "Success" if r["success"] else "Failure" for r in results
+    ]
+    colors = ["green" if flag == "Success" else "red" for flag in success_flags]
+
+    if not response_times:
+        print("No response times to plot.")
+        return
+
+    plt.figure(figsize=(12, 6))
+    plt.scatter(range(len(response_times)), response_times, c=colors, alpha=0.7)
+    plt.title("API Response Time per Request")
+    plt.xlabel("Request Index")
+    plt.ylabel("Response Time (s)")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(output_file)
+    print(f"\nResponse time graph saved as '{output_file}'")
 
 def run_load_test(
     url: str, num_requests: int, max_workers: int
@@ -124,7 +149,7 @@ def main():
 
         # Analyze results
         analysis = analyze_results(results)
-
+        plot_results(results)
         # Print results
         print("\\nTest Results:")
         print("-" * 50)
