@@ -145,6 +145,7 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.cpu.txt
+          pip install pyopenssl --upgrade
 
       - name: Setup dvc
         run: |
