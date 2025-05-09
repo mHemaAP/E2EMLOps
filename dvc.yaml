@@ -1,8 +1,20 @@
 stages:
-  pull: 
-    cmd: dvc pull
-  train:
-    cmd: 
-      - which python
-      # - python src/backend/torch_local/train.py script=true name=sports callbacks.model_checkpoint.filename=sports trainer.max_epochs=2 trainer.limit_train_batches=0.125 trainer.limit_val_batches=.125 trainer.limit_test_batches=0.125
-      # - python src/backend/torch_local/train.py model=mvegfruits data=dvegfruits script=true name=vegfruits callbacks.model_checkpoint.filename=vegfruits trainer.max_epochs=2 trainer.limit_train_batches=0.125 trainer.limit_val_batches=.125 trainer.limit_test_batches=0.125
+  train_sports:
+    cmd: python src/backend/torch_local/train.py experiment=hsports script=true
+    desc: "Train sports classification model"
+    deps:
+      - src/backend/torch_local/train.py
+   
+  train_vegfruits:
+    cmd: python src/backend/torch_local/train.py experiment=hvegfruits script=true
+    desc: "Train vegetables and fruits classification model"
+    deps:
+      - src/backend/torch_local/train.py
+
+  transfer_to_s3:
+    cmd: python src/backend/torch_local/transfer_mar.py
+    desc: "Train and veg fruits"
+    deps:
+      - src/backend/torch_local/transfer_mar.py
+      
+

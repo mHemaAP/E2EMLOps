@@ -230,3 +230,11 @@ There are two choosing buttons and each one redirects to different end points
     --export-path {deploy_dir}/model-store/ -f --version 0.0.1
     --extra-files {deploy_dir}/index_to_name.json
 ```
+
+### DVC setup
+
+make sure data/processed {sports, vegfruits} are present
+
+dvc remote add -d myremote s3://mybucket-emlo-mumbai/session-18-data
+dvc add data
+dvc push -r myremote

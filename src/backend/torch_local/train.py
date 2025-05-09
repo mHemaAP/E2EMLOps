@@ -174,7 +174,7 @@ def main(cfg: DictConfig):
         print(onnx_model_file_path)
         if os.path.isfile( onnx_model_file_path ):
             print("removing old onnx files!!")
-            os.remove(model_file_path)
+            os.remove(onnx_model_file_path)
 
         model.to_onnx(file_path=onnx_model_file_path,input_sample=imgs, export_params=True,verbose=True, dynamic_axes={'input': {0: 'batch'}},input_names=['input'],output_names=['output'])
         print(f"onnx model saved: {onnx_model_file_path}")
