@@ -1,0 +1,9 @@
+schema: '2.0'
+stages:
+  train_vegfruits:
+    cmd: python src/backend/torch_local/train.py experiment=hvegfruits script=true
+    deps:
+    - path: src/backend/torch_local/train.py
+      hash: md5
+      md5: 029c1ae540112eefef4ac9e131acce3d
+      size: 6881

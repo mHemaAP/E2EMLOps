@@ -148,7 +148,7 @@ jobs:
 
       - name: Setup dvc
         run: |
-          dvc pull -v
+          dvc pull -r myremote
 
       - name: Setup dvc
         run: |
