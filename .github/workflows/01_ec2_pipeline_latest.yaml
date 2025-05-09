@@ -142,6 +142,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Install requirements
+        run: |
+          pip install -r requirements.cpu.txt
+
       - name: Setup dvc
         run: |
           dvc pull -v
