@@ -1,4 +1,6 @@
 [core]
-    remote = myremote
-['remote "myremote"']
-    url = s3://mybucket-emlo-mumbai/session-18-data
+    autostage = true
+    analytics = false
+    remote = mlops
+['remote "mlops"']
+    url = s3://abhiya-mlops-project/data/
