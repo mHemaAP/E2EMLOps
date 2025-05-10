@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       commit_id: ${{ steps.get_commit_id.outputs.commit_id }}
+      ecr_image: ${{ steps.build-image.outputs.image }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -156,7 +157,7 @@ jobs:
 
       - name: Setup dvc
         run: |
-          dvc repro
+          dvc repro -f
 
       - name: Get Commit ID
         id: get_commit_id_ec2
