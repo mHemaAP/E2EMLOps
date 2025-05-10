@@ -31,10 +31,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # WORKDIR /mlops
 
-# COPY . .
+# Option 2: If you're using pyproject.toml with UV
+# copy_ONLY the pyproject.toml and other build files first
+
+
+# COPY pyproject.toml setup.py setup.cfg ./
+# Install the package in development mode
 
 # # Install Python dependencies from pyproject.toml
 # RUN uv pip install --system .
+
+
+# COPY . .
+
+
 
 #=========================================== end uv part==============
 
