@@ -122,7 +122,7 @@ jobs:
           market-type: "spot"
 
   #----------------------------------------
-  # JOB 3: Train model and deploy
+  # JOB 3: Train model and save artifacts 
   #----------------------------------------
   do-the-job:
     name: Train Models and Deploy
