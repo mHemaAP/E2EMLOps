@@ -142,7 +142,17 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+      
+      # Install Python on EC2 (self-hosted runner)
+      - name: Install Python
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+          sudo ln -s /usr/bin/python3 /usr/bin/python    
+          
+        # Ensure `python` command is available
 
+      
       - name: Install requirements
         run: |
           pip install -r requirements.cpu.txt
