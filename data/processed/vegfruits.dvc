@@ -1,6 +1,6 @@
 outs:
-- md5: a97a33e74839666c63e3886fe4cc6b8a.dir
-  size: 2167464123
-  nfiles: 3826
+- md5: 781c711a3af05aac1a1db68b99f371c0.dir
+  size: 571741740
+  nfiles: 21000
   hash: md5
   path: vegfruits
