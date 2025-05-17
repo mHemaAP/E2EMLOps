@@ -26,7 +26,7 @@ def upload_folder_to_s3(local_folder, bucket_name, s3_prefix):
 
 
 all_projects = ["vegfruits", "sports"]
-s3_bucket = "abhiya-mlops-project"
+s3_bucket = "emlo-project"
 
 for project in all_projects:
     handler_path = f"src/backend/torchserve_app/{project}_handler.py"
@@ -65,4 +65,4 @@ for project in all_projects:
 # ✅ Upload ENTIRE checkpoints directory to S3
 upload_folder_to_s3("checkpoints", s3_bucket, "checkpoints")
 
-print("✅ Entire 'checkpoints' folder uploaded to s3://abhiya-mlops-project/checkpoints")
+print("✅ Entire 'checkpoints' folder uploaded to s3://emlo-project/checkpoints")
