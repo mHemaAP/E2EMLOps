@@ -3,4 +3,4 @@
     analytics = false
     remote = mlops
 ['remote "mlops"']
-    url = s3://abhiya-mlops-project/data/
+    url = s3://emlo-project/data/
