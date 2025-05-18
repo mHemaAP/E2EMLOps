@@ -149,7 +149,7 @@ jobs:
 
       - name: Setup dvc
         run: |
-          dvc pull -r myremote
+          dvc pull -r mlops
 
       - name: Setup dvc
         run: |
