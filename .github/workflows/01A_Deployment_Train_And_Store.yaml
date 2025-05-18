@@ -214,7 +214,7 @@ jobs:
             -e AWS_REGION=${{ secrets.AWS_REGION }} \
             ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest \
             /bin/bash -c "
-              dvc pull -r myremote && \
+              dvc pull -r mlops && \
               dvc repro -f
               python src/backend/torch_local/transfer_mar.py -p stage 
             "
@@ -222,7 +222,7 @@ jobs:
       # un comment after debugging
       # - name: Setup dvc
       #   run: |
-      #     dvc pull -r myremote
+      #     dvc pull -r mlops
 
       # - name: Setup dvc
       #   run: |
