@@ -23,7 +23,7 @@ data:
 
 trainer:
   min_epochs: 2
-  max_epochs: 3
+  max_epochs: 20
   # Config Gets 90% + accuracy without limiting data
   # Helps in faster testing
   # limit_train_batches: 0.05
