@@ -1,4 +1,4 @@
 [core]
-    remote = myremote
-['remote "myremote"']
-    url = s3://mybucket-emlo-mumbai/session-18-data
+    remote = mlops
+['remote "mlops"']
+    url = s3://emlo-project/data/
