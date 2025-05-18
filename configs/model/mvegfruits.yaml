@@ -3,7 +3,8 @@ _target_: "src.backend.torch_local.models.mvegfruits.LitVegFruitsModel"
 
 # Model parameters
 base_model: convnext_tiny
-num_classes: 36
+num_classes: 36   # for bigger dataset we need to change the number of classes here.
+# this is the number of classes for Fruit and Vegetable Image Recognition Dataset.
 # pretrained: False
 
 depths: (3, 3, 9, 3)      # Deeper layers for hierarchical feature learning
