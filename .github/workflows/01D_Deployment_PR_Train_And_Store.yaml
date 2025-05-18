@@ -233,7 +233,7 @@ jobs:
           mkdir -p output_prod
           for project in sports vegfruits; do
             aws s3 cp \
-              s3://mybucket-emlo-mumbai/kserve-ig/${project}-classifier-prod/output_${project}.txt \
+              s3://emlo-project/kserve-ig/${project}-classifier-prod/output_${project}.txt \
               output_prod/output_${project}.txt
           done
 
