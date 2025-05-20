@@ -7,15 +7,15 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
-      AWS_REGION:
+      AWS_REGION_2:
         required: true
       AWS_ECR_LOGIN_URI:
         required: true
       ECR_REPOSITORY_NAME:
         required: true
-      AWS_SECURITY_GROUP_ID:
+      AWS_SECURITY_GROUP_ID_2:
         required: true
-      AWS_SUBNET_ID_1:
+      AWS_SUBNET_ID_2:
         required: true
       PERSONAL_ACCESS_TOKEN:
         required: true
@@ -33,7 +33,7 @@ on:
 # Environment variables used across jobs
 env:
   ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
-  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_REGION_2: ${{ secrets.AWS_REGION_2 }}
   # S3_BUCKET: ${{ secrets.S3_BUCKET_NAME }}
   # S3_DATA_PATH: data/                #data/files/md5 
 
@@ -63,7 +63,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION_2 }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -118,7 +118,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION_2 }}
 
       - name: Display the commit ID
         run: |
@@ -143,8 +143,8 @@ jobs:
           # ec2-image-id: ami-0e35ddab05955cf57
           # ec2-image-id: ami-01654480b8a1994bd
           # ec2-instance-type: t3a.xlarge
-          subnet-id: ${{ secrets.AWS_SUBNET_ID_1 }}
-          security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID }}
+          subnet-id: ${{ secrets.AWS_SUBNET_ID_2 }}
+          security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID_2 }}
           market-type: "spot"
 
   #----------------------------------------
@@ -167,7 +167,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION_2 }}
 
       - name: Test AWS CLI
         run: |
@@ -176,7 +176,7 @@ jobs:
 
       - name: Login to Amazon ECR
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_LOGIN_URI }}
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION_2 }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_LOGIN_URI }}
 
       - name: Pull Docker image from ECR
         run: |
@@ -210,8 +210,8 @@ jobs:
             -v "$(pwd):/workspace" \
             -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            -e AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }} \
-            -e AWS_REGION=${{ secrets.AWS_REGION }} \
+            -e AWS_DEFAULT_REGION=${{ secrets.AWS_REGION_2 }} \
+            -e AWS_REGION_2=${{ secrets.AWS_REGION_2 }} \
             ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest \
             /bin/bash -c "
               dvc pull -r mlops && \
@@ -244,7 +244,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION_2 }}
           
       - name: Stop EC2 runner
         uses: machulav/ec2-github-runner@v2.3.9
@@ -261,7 +261,7 @@ jobs:
 #             -v "$(pwd):/workspace" \
 #             -e AWS_ACCESS_KEY_ID=AWS_ACCESS_KEY_ID \
 #             -e AWS_SECRET_ACCESS_KEY=AWS_SECRET_ACCESS_KEY \
-#             -e AWS_DEFAULT_REGION=AWS_REGION \
-#             -e AWS_REGION=AWS_REGION \
+#             -e AWS_DEFAULT_REGION=AWS_REGION_2 \
+#             -e AWS_REGION_2=AWS_REGION_2 \
 #             emlo-18-train  \
 #             /bin/bash 
