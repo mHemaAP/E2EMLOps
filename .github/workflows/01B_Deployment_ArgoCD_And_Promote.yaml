@@ -9,13 +9,19 @@ on:
         required: true
       AWS_REGION:
         required: true
+      AWS_REGION_2:
+        required: true
       AWS_ECR_LOGIN_URI:
         required: true
       ECR_REPOSITORY_NAME:
         required: true
       AWS_SECURITY_GROUP_ID:
         required: true
+      AWS_SECURITY_GROUP_ID_2:
+        required: true
       AWS_SUBNET_ID_1:
+        required: true
+      AWS_SUBNET_ID_2:
         required: true
       PERSONAL_ACCESS_TOKEN:
         required: true
