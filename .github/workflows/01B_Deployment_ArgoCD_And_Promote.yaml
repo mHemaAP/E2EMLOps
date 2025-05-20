@@ -61,7 +61,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1b # us-east-1 # ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION_2 }} # us-east-1b # us-east-1 # ${{ secrets.AWS_REGION }}
 
       - name: Display the commit ID
         run: |
@@ -84,10 +84,10 @@ jobs:
 
           # AMI with CPU only
           # ec2-image-id: ami-0e35ddab05955cf57
-          ec2-image-id: ami-0fcdcdcc9cf0407ae # changed for US-east-1 region # ami-01654480b8a1994bd # this is for ap-south-1 region
+          ec2-image-id: ami-01654480b8a1994bd # this is for ap-south-1 region # ami-0fcdcdcc9cf0407ae # changed for US-east-1 region 
           ec2-instance-type: t3a.xlarge
-          subnet-id: ${{ secrets.AWS_SUBNET_ID_1 }}
-          security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID }}
+          subnet-id: ${{ secrets.AWS_SUBNET_ID_2 }}
+          security-group-id: ${{ secrets.AWS_SECURITY_GROUP_ID_2 }}
           market-type: "spot"
 
   #----------------------------------------
@@ -777,7 +777,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1b # us-east-1 # ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION_2 }} # us-east-1b # us-east-1 # 
           
       - name: Stop EC2 runner
         uses: machulav/ec2-github-runner@v2.3.9
