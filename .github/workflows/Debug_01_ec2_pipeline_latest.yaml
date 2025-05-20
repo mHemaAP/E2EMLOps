@@ -391,7 +391,7 @@ jobs:
               --cluster=basic-cluster-8 \
               --namespace=kube-system \
               --name=aws-load-balancer-controller \
-              --attach-policy-arn=arn:aws:iam::306093656765:policy/AWSLoadBalancerControllerIAMPolicy \
+              --attach-policy-arn=arn:aws:iam::567720730948:policy/AWSLoadBalancerControllerIAMPolicy \
               --override-existing-serviceaccounts \
               --region ap-south-1 \
               --approve

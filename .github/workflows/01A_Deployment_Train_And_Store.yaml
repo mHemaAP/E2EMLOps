@@ -47,8 +47,8 @@ jobs:
     outputs:
       commit_id: ${{ steps.get_commit_id.outputs.commit_id }}
       registry: ${{ steps.login-ecr.outputs.registry }}
-      docker_username: ${{ steps.login-ecr.outputs.docker_username_306093656765_dkr_ecr_ap_south_1_amazonaws_com }}
-      docker_password: ${{ steps.login-ecr.outputs.docker_password_306093656765_dkr_ecr_ap_south_1_amazonaws_com }}
+      docker_username: ${{ steps.login-ecr.outputs.docker_username_567720730948_dkr_ecr_ap_south_1_amazonaws_com }}
+      docker_password: ${{ steps.login-ecr.outputs.docker_password_567720730948_dkr_ecr_ap_south_1_amazonaws_com }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -188,7 +188,7 @@ jobs:
       #     pip install -r requirements.cpu.txt
       #     pip install pyopenssl --upgrade
 
-      # 306093656765.dkr.ecr.ap-south-1.amazonaws.com/emlo-session-10-image
+      # 567720730948.dkr.ecr.ap-south-1.amazonaws.com/emlo-session-10-image
 
       - name: Verify GPU Access via torch and lightining
         run: |
